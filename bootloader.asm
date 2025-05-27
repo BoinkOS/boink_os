@@ -1,18 +1,32 @@
-[BITS 16]
-[ORG 0x7C00]
+[bits 16]
+[org 0x7c00]
 
 start:
-     mov ah, 0x0E             ; enter teletype mode
-     mov al, 'H'
-     int 0x10
-     mov al, 'i'
-     int 0x10
-     mov al, '!'
-     int 0x10
+     mov si, message
+	call print
 
 hang:
-     jmp hang                 ; inf loop so we don't crash
+     jmp hang ; inf loop so we don't crash
+
+; ---
+
+print:
+    ; input: SI points to null-terminated string
+.print_loop:
+    lodsb ; loads byte at [SI] into AL, advances SI
+    cmp al, 0
+    je .done
+    mov ah, 0x0E
+    int 0x10
+    jmp .print_loop
+.done:
+    ret
 
 
-times 510 - ($ - $$) db 0     ; pad to 512b to fit boot sector
-dw 0xAA55                     ; boot signature to mark as bootable
+message db "Hello from boink bootloader!", 0
+
+; ---
+
+; MBR boot signature
+times 510-($-$$) db 0 ; padding
+dw 0xaa55 ; magic number
