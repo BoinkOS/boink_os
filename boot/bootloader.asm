@@ -2,18 +2,28 @@
 [org 0x7c00]
 
 start:
-     mov si, message
-	call print
-
-hang:
-     jmp hang ; inf loop so we don't crash
+     cli
+	
+     mov si, entry_msg
+     call print
+	
+     mov si, gdt_msg
+     call print
+     call load_gdt
+	
+     mov si, pm_msg
+     call print
+     call enter_pm
 
 ; ---
 
+entry_msg db "hello from boink bootloader!", 0
+gdt_msg db "loading gdt...", 0
+pm_msg db "entering protected mode...", 0
+
 %include "boot/print.asm"
-
-
-message db "Hello from boink bootloader!", 0
+%include "boot/gdt.asm"
+%include "boot/pm.asm"
 
 ; ---
 
