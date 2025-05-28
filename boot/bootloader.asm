@@ -13,6 +13,8 @@ start:
      mov si, entry_msg
      call print
 	
+     mov si, kernel_load_msg
+     call print
 	call load_kernel
 	
      mov si, gdt_msg
@@ -23,21 +25,16 @@ start:
      call print
      call enter_pm
 
-; ---
-
-
-
-
-entry_msg db "hello from boink bootloader!", 0
-gdt_msg db "loading gdt...", 0
-pm_msg db "entering protected mode...", 0
-
 ; constants
 KERNEL_OFFSET equ 0x1000
 STACK equ 0x9000
 
 ; variables
 BOOT_DRV db 0
+entry_msg db "hello from boink bootloader!", 0
+kernel_load_msg db "loading kernel...", 0
+gdt_msg db "loading gdt...", 0
+pm_msg db "entering protected mode...", 0
 
 ; includes
 %include "boot/print.asm"
@@ -45,7 +42,6 @@ BOOT_DRV db 0
 %include "boot/load_sec.asm"
 %include "boot/load_kern.asm"
 %include "boot/pm.asm"
-; %include "boot/kern_entry.asm"
 
 ; ---
 
