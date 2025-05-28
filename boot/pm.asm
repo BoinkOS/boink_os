@@ -9,6 +9,7 @@ enter_pm:
 
 ; ---------------------------------------------
 [bits 32]
+
 protected_mode:
      ; set up segments
      mov ax, 0x10        ; data segment selector
@@ -17,9 +18,13 @@ protected_mode:
      mov fs, ax
      mov gs, ax
      mov ss, ax
+	
+	mov esp, 0x90000
 
      ; do something in 32-bit mode to prove it
-     mov dword [0xB8000], 0x2F4B   ; write 'K' to screen with color
+     ; mov dword [0xB8000], 0x2F4B   ; write 'K' to screen with color
+	mov dword [0xB8000], 0x2F482F49
+	call 0x1000
 
 .hang:
      jmp .hang
