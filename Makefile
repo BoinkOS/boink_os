@@ -1,45 +1,54 @@
 # === Filenames ===
-BOOTLOADER_SRC = boot/bootloader.asm
-BOOTLOADER_BIN = bootloader.bin
+BOOTLOADER_SRC := boot/bootloader.asm
+BOOTLOADER_BIN := build/bootloader.bin
 
-KERNEL_SRCS = $(wildcard kernel/*.c)
-KERNEL_OBJS = $(KERNEL_SRCS:.c=.o)
-KERNEL_BIN = kernel.bin
-LINKER_SCRIPT = link.ld
+KERNEL_SRCS := $(shell find kernel -name '*.c')
+KERNEL_OBJS := $(patsubst kernel/%.c, build/%.o, $(KERNEL_SRCS))
 
-IMAGE = os-image.img
+# put main.o first when linking
+KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
+                       $(filter-out build/main.o, $(KERNEL_OBJS))
+
+KERNEL_BIN := build/kernel.bin
+LINKER_SCRIPT := link.ld
+
+IMAGE := os-image.img
 
 # === Tools ===
-CC = i686-elf-gcc
-LD = i386-elf-ld
-CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra
+CC := i686-elf-gcc
+LD := i386-elf-ld
+CFLAGS := -m32 -ffreestanding -O2 -Wall -Wextra -Isrc
+LD_FLAGS := -T $(LINKER_SCRIPT) --oformat binary -nostdlib -e kmain
 
 # === Targets ===
 
 all: $(IMAGE)
 
-# build bootloader (pure ASM)
-$(BOOTLOADER_BIN): $(BOOTLOADER_SRC) boot/*.asm
+# make sure build dir exists
+build:
+	mkdir -p build
+
+# assemble bootloader
+$(BOOTLOADER_BIN): $(BOOTLOADER_SRC) | build
 	nasm -f bin $(BOOTLOADER_SRC) -o $(BOOTLOADER_BIN)
 
-# build all .c files into .o files
-%.o: %.c
+# compile C files into object files under /build
+build/%.o: kernel/%.c | build
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# link all .o files into a flat binary kernel
-$(KERNEL_BIN): $(KERNEL_OBJS) $(LINKER_SCRIPT)
-	$(LD) -T $(LINKER_SCRIPT) --oformat binary $(KERNEL_OBJS) -o $(KERNEL_BIN)
+# link kernel with main.o first
+$(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(LINKER_SCRIPT)
+	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) -o $(KERNEL_BIN)
 
-# build final floppy image with bootloader + kernel
+# build bootable image
 $(IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)
 	dd if=/dev/zero of=$(IMAGE) bs=512 count=2880
 	dd if=$(BOOTLOADER_BIN) of=$(IMAGE) conv=notrunc
 	dd if=$(KERNEL_BIN) of=$(IMAGE) bs=512 seek=1 conv=notrunc
 
-# run in QEMU
 run: $(IMAGE)
 	qemu-system-i386 -fda $(IMAGE)
 
-# clean up all build files
 clean:
-	rm -f *.bin *.o *.img kernel/*.o
+	rm -rf build *.img
