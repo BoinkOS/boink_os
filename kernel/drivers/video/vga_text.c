@@ -80,13 +80,15 @@ void print_at(char * str, int col, int row) {
 }
 
 void clear_screen(void) {
-	int row = 0;
-	int col = 0;
-
-	for (; row < MAX_ROWS; ++row)
-		for (; col < MAX_COLS; ++col)
+	for (int row = 0; row < MAX_ROWS; ++row) {
+		for (int col = 0; col < MAX_COLS; ++col) {
 			print_char(' ', col, row);
+		}
+	}
+	set_cursor_to_origin();
+}
 
+void set_cursor_to_origin(void) {
 	set_cursor(get_scr_offset(0, 0));
 }
 

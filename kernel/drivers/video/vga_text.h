@@ -27,6 +27,7 @@ int get_cursor(void);
 void set_cursor(int offset);
 void print_at(char * str , int col , int row);
 void clear_screen(void);
+void set_cursor_to_origin(void);
 int handle_scrolling(int cursor_offset);
 char get_char_at(int row, int col);
 void set_attribute_byte(char attrib);
