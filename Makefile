@@ -4,6 +4,8 @@ BOOTLOADER_BIN := build/bootloader.bin
 
 KERNEL_SRCS := $(shell find kernel -name '*.c')
 KERNEL_OBJS := $(patsubst kernel/%.c, build/%.o, $(KERNEL_SRCS))
+IVEC_SRC := kernel/interrupts/interrupt_vectors.asm
+IVEC_OBJ := build/interrupts/interrupt_vectors.o
 
 # put main.o first when linking
 KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
@@ -37,9 +39,13 @@ build/%.o: kernel/%.c | build
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(IVEC_OBJ): $(IVEC_SRC) | build
+	@mkdir -p $(dir $@)
+	nasm -f elf32 $(IVEC_SRC) -o $(IVEC_OBJ)
+
 # link kernel with main.o first
-$(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(LINKER_SCRIPT)
-	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) -o $(KERNEL_BIN)
+$(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(LINKER_SCRIPT)
+	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) -o $(KERNEL_BIN)
 
 # build bootable image
 $(IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)

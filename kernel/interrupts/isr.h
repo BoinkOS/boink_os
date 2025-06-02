@@ -1,0 +1,1 @@
+void idt_default_handler();
