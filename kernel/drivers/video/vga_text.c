@@ -104,7 +104,7 @@ int handle_scrolling(int cursor_offset) {
 	}
 
 	char * lst_ln = (char * )(get_scr_offset(0, MAX_ROWS - 1) + VGA_ADDRESS);
-	for (i = 0; i < MAX_COLS; i += 2)
+	for (i = 0; i < MAX_COLS*2; i += 2)
 		lst_ln[i] = ' ';
 
 	cursor_offset -= 2 * MAX_COLS;
