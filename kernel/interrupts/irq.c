@@ -46,7 +46,10 @@ void irq_common_c(uint32_t irq_num) {
 	if (irq_num < MAX_IRQ_HANDLERS && irq_handlers[irq_num]) {
 		irq_handlers[irq_num](irq_num);  // call registered handler
 	} else {
-		vga_println("IRQ fired; handled by default handler. Unadvisable to not have IRQ handler.");
+		vga_print("IRQ");
+		vga_printdec(irq_num);
+		vga_print(" fired; handled by default handler. Unadvisable to not have IRQ handler.");
+		vga_println("");
 	}
 	
 	end_of_interrupt();
