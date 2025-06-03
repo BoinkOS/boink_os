@@ -1,8 +1,10 @@
 #include "irq.h"
 #include "idt.h"
 #include "../drivers/video/vga_text.h"
+#include "pic.h"
 
-static volatile uint32_t pit_ticks = 0;
+#define MAX_IRQ_HANDLERS 16
+static irq_handler_t irq_handlers[MAX_IRQ_HANDLERS] = { 0 };
 
 extern void irq0_handler(void);
 extern void irq1_handler(void);
@@ -41,12 +43,17 @@ void irq_init(uint16_t code_selector) {
 }
 
 void irq_common_c(uint32_t irq_num) {
-	if (irq_num == 0) {
-		++pit_ticks;
-	     if (pit_ticks % 100 == 0) {
-	         vga_println("tick!");
-	     }
+	if (irq_num < MAX_IRQ_HANDLERS && irq_handlers[irq_num]) {
+		irq_handlers[irq_num](irq_num);  // call registered handler
 	} else {
 		vga_println("IRQ fired; handled by default handler. Unadvisable to not have IRQ handler.");
+	}
+	
+	end_of_interrupt();
+}
+
+void irq_set_handler(uint8_t irq, irq_handler_t handler) {
+	if (irq < MAX_IRQ_HANDLERS) {
+		irq_handlers[irq] = handler;
 	}
 }

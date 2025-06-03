@@ -35,3 +35,5 @@ char get_attribute_byte(void);
 void hide_cursor(void);
 void vga_print(const char* str);
 void vga_println(const char* str);
+void vga_printchar(char character);
+void vga_printdec(int i);

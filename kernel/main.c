@@ -3,7 +3,8 @@
 #include "interrupts/pic.h"
 #include "interrupts/irq.h"
 #include "interrupts/pit.h"
-
+#include "klib/uptime/uptime.h"
+extern void pit_uptime_handler(uint32_t irq);
 
 void kmain(void) {
 	//clear_screen();
@@ -31,8 +32,24 @@ void kmain(void) {
 	vga_println("initialising programmable interval timer...");
 	pit_init(100);
 	
-	__asm__ __volatile__("sti");
-	vga_println("maskable interrupts now enabled.");
 	
-	while (1);  // freeze so the CPU doesn’t start interpreting RAM
+	vga_println("setting IRQ0 handler for uptime...");
+	irq_set_handler(0, pit_uptime_handler);
+
+	vga_println("maskable interrupts will be enabled after next instruction.");
+	__asm__ __volatile__("sti");
+	
+	// while (1);  // freeze so the CPU doesn’t start interpreting RAM
+	
+	while (1) {
+		__asm__ __volatile__("hlt");
+
+		if (uptime_ticks() % 100 == 0) { // every second
+			vga_print("Uptime: ");
+			set_attribute_byte(0x02);
+			vga_printdec(uptime_seconds());
+			vga_println("s");
+			set_attribute_byte(0x0f);
+		}
+	}
 }

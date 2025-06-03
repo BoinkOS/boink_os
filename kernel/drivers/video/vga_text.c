@@ -141,3 +141,11 @@ void vga_println(const char* str) {
     vga_print(str);
     print_char('\n', -1, -1);
 }
+
+void vga_printchar(char character) {
+    print_char(character, -1, -1);
+}
+
+void vga_printdec(int i) {
+     vga_print(itoa(i, 10));
+}
