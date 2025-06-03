@@ -7,6 +7,7 @@
 #include "vga_text.h"
 #include "../../llio.h"
 #include "../../utils.h"
+#include <stddef.h>
 
 char attribute_byte = GRAY_ON_BLACK;
 
@@ -143,7 +144,9 @@ void vga_println(const char* str) {
 }
 
 void vga_printchar(char character) {
-    print_char(character, -1, -1);
+	if (character == NULL)
+		return;
+	print_char(character, -1, -1);
 }
 
 void vga_printdec(int i) {
