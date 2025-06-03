@@ -15,3 +15,10 @@ char* itoa(int val, int base){
 		buf[i] = "0123456789abcdef"[val % base];
 	return &buf[i+1];
 }
+
+int strlen(const char * str) {
+	int i = 0;
+	while (str[i] != '\0')
+		++i;	
+	return i;
+}

@@ -1,0 +1,1 @@
+extern const char scancode_to_ascii[128];
