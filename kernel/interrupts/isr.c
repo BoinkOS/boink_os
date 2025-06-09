@@ -13,8 +13,6 @@ void idt_default_handler() {
 	vga_println("!!! PANIC !!!");
 	vga_println("An exception has occurred and has been handled by the kernel's default handler.");
 	vga_println("");
-	vga_println("IRQ fired; handled by default handler. Unadvisable to not have IRQ handler.");
-	vga_println("IRQ fired; handled by default handler. Unadvisable to not have IRQ handler.");
 	vga_println("It is advisable to implement your own exception handling.");
 
 
