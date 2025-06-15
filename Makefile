@@ -54,7 +54,7 @@ $(IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)
 	dd if=$(KERNEL_BIN) of=$(IMAGE) bs=512 seek=1 conv=notrunc
 
 run: $(IMAGE)
-	qemu-system-i386 -fda $(IMAGE)
+	qemu-system-i386 -fda $(IMAGE) -hdb testdisk.glfs
 
 clean:
 	rm -rf build *.img

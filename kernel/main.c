@@ -5,7 +5,10 @@
 #include "interrupts/pit.h"
 #include "klib/uptime/uptime.h"
 #include "klib/input/keyboard/keyboard.h"
+#include "disk/disk.h"
+#include "fs/glfs.h"
 extern void pit_uptime_handler(uint32_t irq);
+extern void ata_irq_handler(uint32_t irq_num);
 
 void kmain(void) {
 	//clear_screen();
@@ -38,11 +41,42 @@ void kmain(void) {
 	irq_set_handler(0, pit_uptime_handler);
 	keyboard_init();
 	
-	
 	vga_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
 	
 	// while (1);  // freeze so the CPU doesn’t start interpreting RAM
+
+
+
+	
+	vga_println("initializing disk...");
+
+	irq_set_handler(14, ata_irq_handler);
+	disk_init();
+	vga_println("reading sector 0...");
+	uint8_t buf[512];
+	disk_read(0, buf);
+	vga_println("done reading sector 0. attempting to read GLFS superblock...");
+	
+	char id[9];
+	for (int i = 0; i < 8; i++)
+		id[i] = buf[i];
+	id[8] = '\0';
+	
+	int is_glfs_verified = check_glfs_magic(buf);
+	
+	if (is_glfs_verified) {
+		vga_print("read superblock identifier: ");
+		set_attribute_byte(0x02);
+		vga_print(id);
+		set_attribute_byte(0x0F);
+		vga_println("GLFS READ CONFIRMED!!!");
+	} else {
+		set_attribute_byte(0x4F);
+		vga_println("Unable to verify primary slave as GLFS disk.");
+		while (1) ;
+	}
+	
 
 	while (1) {
 		if (kbd_has_char()) {

@@ -2,3 +2,5 @@
 *.o
 build
 boinkdata.img
+*.glfs
+*.img
