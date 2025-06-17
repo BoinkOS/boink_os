@@ -134,14 +134,14 @@ void hide_cursor(void) {
 }
 
 void vga_print(const char* str) {
-    while (*str) {
-        print_char(*str++, -1, -1);
-    }
+	while (*str) {
+		print_char(*str++, -1, -1);
+	}
 }
 
 void vga_println(const char* str) {
-    vga_print(str);
-    print_char('\n', -1, -1);
+	vga_print(str);
+	print_char('\n', -1, -1);
 }
 
 void vga_printchar(char character) {
@@ -151,5 +151,5 @@ void vga_printchar(char character) {
 }
 
 void vga_printdec(int i) {
-     vga_print(itoa(i, 10));
+	 vga_print(itoa(i, 10));
 }

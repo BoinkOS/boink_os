@@ -16,7 +16,7 @@ void idt_default_handler() {
 	vga_println("It is advisable to implement your own exception handling.");
 
 
-    // halt CPU
+	// halt CPU
 	for (;;) __asm__ __volatile__("hlt");
 
 	__asm__ __volatile__("popa; leave; iret");

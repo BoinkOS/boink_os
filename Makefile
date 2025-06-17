@@ -9,7 +9,7 @@ IVEC_OBJ := build/interrupts/interrupt_vectors.o
 
 # put main.o first when linking
 KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
-                       $(filter-out build/main.o, $(KERNEL_OBJS))
+					$(filter-out build/main.o, $(KERNEL_OBJS))
 
 KERNEL_BIN := build/kernel.bin
 LINKER_SCRIPT := link.ld

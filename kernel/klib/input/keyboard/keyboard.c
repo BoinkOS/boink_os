@@ -31,9 +31,9 @@ void keyboard_handler(uint32_t irq_num) {
 		case SC_ALT: alt = 1; return;
 		case SC_CAPSLOCK: caps = !caps; return;
 		case SC_BACKSPACE:
-		   kb_buffer_put('\b'); return;
+			kb_buffer_put('\b'); return;
 		case SC_ENTER:
-		   kb_buffer_put('\n'); return;
+			kb_buffer_put('\n'); return;
 	}
 
 	char c = shift ? keymap_shift[scancode] : keymap_normal[scancode];

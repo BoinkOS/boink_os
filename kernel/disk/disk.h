@@ -4,8 +4,8 @@
 #define ATA_SR_BSY	 0x80 // Busy
 #define ATA_SR_DRDY	0x40 // Drive ready
 #define ATA_SR_DRQ	 0x08 // Data request (ready to transfer)
-#define ATA_CMD_READ_SECTORS	0x20
-#define ATA_CMD_WRITE_SECTORS   0x30
+#define ATA_CMD_READ_SECTORS 0x20
+#define ATA_CMD_WRITE_SECTORS 0x30
 
 typedef struct {
 	int (*read)(uint32_t lba, uint8_t* buffer);

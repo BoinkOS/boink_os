@@ -17,7 +17,7 @@ void pic_remap(void) {
 
 void send_eoi(uint8_t irq) {
 	if (irq >= 8)
-	    pbout(PIC2_COMMAND, PIC_EOI);
+		pbout(PIC2_COMMAND, PIC_EOI);
 	pbout(PIC1_COMMAND, PIC_EOI);
 }
 
