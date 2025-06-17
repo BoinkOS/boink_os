@@ -2,7 +2,7 @@
 [org 0x7c00]
 
 start:
-     cli
+	cli
 	xor ax, ax	; zero out
 	mov ds, ax
 	mov es, ax
@@ -10,24 +10,24 @@ start:
 	mov sp, STACK	; set stack address
 	mov sp, bp
 	
-     mov si, entry_msg
-     call print
+	mov si, entry_msg
+	call print
 	
-     mov si, kernel_load_msg
-     call print
+	mov si, kernel_load_msg
+	call print
 	call load_kernel
 	
-     mov si, gdt_msg
-     call print
-     call load_gdt
+	mov si, gdt_msg
+	call print
+	call load_gdt
 	
-     mov si, pm_msg
-     call print
-     call enter_pm
+	mov si, pm_msg
+	call print
+	call enter_pm
 
 ; constants
 KERNEL_OFFSET equ 0x1000
-STACK equ 0x9000
+STACK equ 0x10000
 
 ; variables
 BOOT_DRV db 0
