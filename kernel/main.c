@@ -70,12 +70,20 @@ void kmain(void) {
 		set_attribute_byte(0x02);
 		vga_print(id);
 		set_attribute_byte(0x0F);
-		vga_println("GLFS READ CONFIRMED!!!");
+		vga_print("[ ");
+		set_attribute_byte(0x02);
+		vga_print("GLFS PASS");
+		set_attribute_byte(0x0F);
+		vga_print(" ]");
+		vga_println("");
 	} else {
 		set_attribute_byte(0x4F);
 		vga_println("Unable to verify primary slave as GLFS disk.");
 		while (1) ;
 	}
+	
+	glfs_read_directory();
+	glfs_list_files();
 	
 
 	while (1) {

@@ -7,6 +7,7 @@
 #include "vga_text.h"
 #include "../../llio.h"
 #include "../../utils.h"
+#include "../../mem/mem.h"
 #include <stddef.h>
 
 char attribute_byte = GRAY_ON_BLACK;
@@ -99,8 +100,8 @@ int handle_scrolling(int cursor_offset) {
 
 	int i;
 	for (i = 1; i < MAX_ROWS; ++i) {
-		mem_cpy((char * )(get_scr_offset(0, i) + VGA_ADDRESS),
-			(char * )(get_scr_offset(0, i - 1) + VGA_ADDRESS),
+		mem_cpy((char * )(get_scr_offset(0, i - 1) + VGA_ADDRESS),
+			(char * )(get_scr_offset(0, i) + VGA_ADDRESS),
 			MAX_COLS * 2);
 	}
 
