@@ -19,10 +19,8 @@ protected_mode:
 	mov gs, ax
 	mov ss, ax
 	
-	mov esp, 0x90000
-
-	; do something in 32-bit mode to prove it
-	; mov dword [0xB8000], 0x2F4B   ; write 'K' to screen with color
+	mov esp, 0x9000
+	
 	call 0x1000
 
 .hang:

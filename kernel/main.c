@@ -1,4 +1,4 @@
-#include "drivers/vga_text/vga_text.h"
+// #include "drivers/vga_text/vga_text.h"
 #include "interrupts/idt.h"
 #include "interrupts/pic.h"
 #include "interrupts/irq.h"
@@ -7,12 +7,20 @@
 #include "klib/input/keyboard/keyboard.h"
 #include "disk/disk.h"
 #include "fs/glfs.h"
+#include "main.h"
+#include "drivers/video/fb.h"
+#include "drivers/video/text.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
 
 void kmain(void) {
+
+     init_framebuffer();
+	draw_string(50, 50, 0xFFFFFF, 0x000000, "an ominous hello appears.\nvga fonts galore!");
+	
+	while (1);
 	//clear_screen();
-	set_attribute_byte(0x1F); // white on blue
+	/*set_attribute_byte(0x1F); // white on blue
 	vga_println("--- BoinkOS Kernel --------------------------------------------");
 	vga_println("--- ASCII Test Seq --------------------------------------------");
 	
@@ -87,7 +95,7 @@ void kmain(void) {
 	glfs_file_loader();
 	
 
-	/*while (1) {
+	while (1) {
 		if (kbd_has_char()) {
 			char c = kbd_read_char();
 			
