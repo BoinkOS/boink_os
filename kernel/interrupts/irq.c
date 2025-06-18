@@ -1,6 +1,6 @@
 #include "irq.h"
 #include "idt.h"
-#include "../drivers/video/vga_text.h"
+#include "../drivers/vga_text/vga_text.h"
 #include "pic.h"
 
 #define MAX_IRQ_HANDLERS 16

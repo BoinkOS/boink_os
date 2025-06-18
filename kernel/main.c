@@ -1,4 +1,4 @@
-#include "drivers/video/vga_text.h"
+#include "drivers/vga_text/vga_text.h"
 #include "interrupts/idt.h"
 #include "interrupts/pic.h"
 #include "interrupts/irq.h"

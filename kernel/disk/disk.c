@@ -1,7 +1,7 @@
 #include "disk.h"
 #include "../llio.h"
 #include "../interrupts/pic.h"
-#include "../drivers/video/vga_text.h"
+#include "../drivers/vga_text/vga_text.h"
 #include <stddef.h>
 
 #define ATA_PRIMARY_IO	0x1F0

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "../disk/disk.h"
-#include "../drivers/video/vga_text.h"
+#include "../drivers/vga_text/vga_text.h"
 #include "../utils.h"
 #include "../mem/mem.h"
 #include "glfs.h"

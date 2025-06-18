@@ -1,6 +1,6 @@
 // isr.c
 #include "isr.h"
-#include "../drivers/video/vga_text.h"
+#include "../drivers/vga_text/vga_text.h"
 #include "../llio.h"
 #include "pic.h"
 
