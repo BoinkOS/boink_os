@@ -82,7 +82,8 @@ void glfs_list_files() {
 	vga_println("-------------------");
 
 	for (int i = 0; i < glfs_file_count; i++) {
-		vga_print("File: ");
+		vga_print(itoa(i + 1, 10));
+		vga_print(": ");
 		vga_print(glfs_files[i].filename);
 		vga_print(" | Start Sector: ");
 		vga_print(itoa(glfs_files[i].start_sector, 10));
@@ -94,4 +95,55 @@ void glfs_list_files() {
 	}
 
 	vga_println("-------------------");
+
+	 vga_println("Select file to run (1 - N): ");
+}
+
+void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
+	uint32_t sector = file->start_sector;
+	uint32_t remaining = file->size;
+
+	uint8_t buffer[SECTOR_SIZE];
+	uint8_t* dest = load_address;
+
+	while (remaining > 0) {
+		disk_read(sector, buffer);
+
+		uint32_t bytes_to_copy = (remaining >= SECTOR_SIZE) ? SECTOR_SIZE : remaining;
+
+		mem_cpy(dest, buffer, bytes_to_copy);
+
+		dest += bytes_to_copy;
+		sector++;
+		remaining -= bytes_to_copy;
+	}
+}
+
+void glfs_file_loader() {
+	glfs_list_files();
+
+	char key = read_key();
+	vga_print("You pressed: ");
+	vga_printchar(key);
+	vga_println("");
+
+	int selection = key - '1';
+
+	if (selection < 0 || selection >= glfs_file_count) {
+		vga_println("Invalid selection.");
+		return;
+	}
+
+	glfs_file_entry* file = &glfs_files[selection];
+	vga_print("Loading file: ");
+	vga_println(file->filename);
+
+	uint8_t* load_address = (uint8_t*)0x100000;
+	glfs_load_file(file, load_address);
+
+	vga_println("File loaded. Attempting to jump...");
+	
+	// UPER unsafe: cast to function pointer and jump
+	void (*entry_point)() = (void (*)())load_address;
+	entry_point();
 }

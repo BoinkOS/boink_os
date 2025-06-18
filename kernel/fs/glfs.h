@@ -17,3 +17,5 @@ typedef struct {
 int check_glfs_magic(uint8_t* buffer);
 void glfs_read_directory();
 void glfs_list_files();
+void glfs_load_file(glfs_file_entry* file, uint8_t* load_address);
+void glfs_file_loader();

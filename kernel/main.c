@@ -83,14 +83,15 @@ void kmain(void) {
 	}
 	
 	glfs_read_directory();
-	glfs_list_files();
+
+	glfs_file_loader();
 	
 
-	while (1) {
+	/*while (1) {
 		if (kbd_has_char()) {
 			char c = kbd_read_char();
 			
 			vga_printchar(c);  // or your own print fn
 		}
-	}
+	}*/
 }
