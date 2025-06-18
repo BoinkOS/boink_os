@@ -25,7 +25,7 @@ char read_key() {
 			c = kbd_read_char();
 			if (c != NULL) {
 				break;
-			
+			}
 		}
 	}
 	return c;

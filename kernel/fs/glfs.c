@@ -8,7 +8,7 @@
 glfs_file_entry glfs_files[MAX_FILES];
 int glfs_file_count = 0;
 
-uint8_t dir_buffer[SECTOR_SIZE * 128]; 
+uint8_t dir_buffer[SECTOR_SIZE * 256]; 
 int dir_buffer_size = 0;
 
 uint8_t end_marker[] = "__END__\n";
