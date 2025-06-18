@@ -23,7 +23,7 @@ char read_key() {
 	while (1) {
 		if (kbd_has_char()) {
 			c = kbd_read_char();
-			if (c != NULL) {
+			if (c != '\0') {
 				break;
 			}
 		}

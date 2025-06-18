@@ -12,6 +12,7 @@ static disk_t disks[1];
 volatile int ata_irq_invoked = 0;
 
 void ata_irq_handler(uint32_t irq_num) {
+	(void)irq_num;
 	ata_irq_invoked = 1;
 }
 

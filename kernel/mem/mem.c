@@ -1,9 +1,12 @@
 #include <stdint.h>
 
-void mem_cpy(char * dest, char * src, int num_of_bytes) {
-	int i;
-	for (i = 0; i < num_of_bytes; ++i)
-		*(dest + i) = *(src + i);
+void mem_cpy(void *dest, void *src, int num_of_bytes) {
+	uint8_t *d = (uint8_t *)dest;
+	uint8_t *s = (uint8_t *)src;
+
+	for (int i = 0; i < num_of_bytes; i++) {
+		d[i] = s[i];
+	}
 }
 
 int mem_cmp(const void* ptr1, const void* ptr2, uint32_t count) {

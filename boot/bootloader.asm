@@ -27,7 +27,7 @@ start:
 
 ; constants
 KERNEL_OFFSET equ 0x1000
-STACK equ 0x10000
+STACK equ 0x1000
 
 ; variables
 BOOT_DRV db 0

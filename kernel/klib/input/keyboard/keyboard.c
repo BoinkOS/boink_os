@@ -13,6 +13,7 @@ static int alt = 0;
 static int caps = 0;
 
 void keyboard_handler(uint32_t irq_num) {
+	(void)irq_num;
 	uint8_t scancode = pbin(DATA_PORT); // read scancode
 
 	// key release

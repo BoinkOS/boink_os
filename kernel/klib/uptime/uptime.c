@@ -6,6 +6,7 @@ static volatile uint32_t ticks = 0; // 4294967295 ticks total ~497 days
 static int tick_rate = 100;  // default is 100 Hz
 
 void pit_uptime_handler(uint32_t irq_num) {
+	(void)irq_num;
 	++ticks;
 }
 
