@@ -16,7 +16,7 @@ extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
 
 void kmain(void) {
-     init_framebuffer();
+	init_framebuffer();
 
 	console_init();
 
