@@ -13,7 +13,7 @@ void draw_char(uint32_t x, uint32_t y, uint32_t fb_fg_color, uint32_t fb_bg_colo
 		uint8_t bits = glyph[row];
 
 		for (size_t col = 0; col < FONT_WIDTH; ++col) {
-			if (bits & (1 << col)) { // leftmost bit is first pixel
+			if (bits & (1 << col)) { // rightmost bit is first pixel
 				put_pixel(x + col, y + row, fb_fg_color);
 			} else {
 			  put_pixel(x + col, y + row, fb_bg_color);
