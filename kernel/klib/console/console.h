@@ -13,3 +13,7 @@ void console_set_color(uint32_t color);
 void console_set_cursor(uint32_t x, uint32_t y);
 void console_set_background_color(uint32_t color);
 void console_clear();
+
+static void draw_cursor();
+static void erase_cursor();
+void console_update();
