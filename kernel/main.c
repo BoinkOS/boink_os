@@ -10,61 +10,50 @@
 #include "main.h"
 #include "drivers/video/fb.h"
 #include "drivers/video/text.h"
+#include "klib/console/console.h"
+#include "utils.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
 
 void kmain(void) {
-
      init_framebuffer();
-	draw_string(50, 50, 0xFFFFFF, 0x000000, "an ominous hello appears.\nvga fonts galore!");
-	
-	while (1);
-	//clear_screen();
-	/*set_attribute_byte(0x1F); // white on blue
-	vga_println("--- BoinkOS Kernel --------------------------------------------");
-	vga_println("--- ASCII Test Seq --------------------------------------------");
-	
-	set_attribute_byte(0x2F);
-	vga_println("  ! \" # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ?");
-	vga_println("@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _");
-	vga_println("` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~  ");
-	
-	
-	set_attribute_byte(0x0f);
 
-	vga_println("remapping PIC...");
+	console_init();
+
+	console_set_color(0x888888);
+	console_println("vesa mode entered, gdt loaded, kernel loaded, protected mode entered prior to jumping to kernel.\n");
+	console_set_color(0xFFFFFF);
+	
+	console_println("hello from boink kernel!");
+	
+	console_println("remapping PIC...");
 	pic_remap();
 	
-	vga_println("initialising IDT...");
+	console_println("initialising IDT...");
 	idt_init(0x08);
 	
-	vga_println("initialising IRQs...");
+	console_println("initialising IRQs...");
 	irq_init(0x08);
 	
-	vga_println("initialising programmable interval timer...");
+	console_println("initialising programmable interval timer...");
 	pit_init(100);
 	
-	
-	vga_println("setting IRQ0 handler for uptime...");
+	console_println("setting IRQ0 handler for uptime...");
 	irq_set_handler(0, pit_uptime_handler);
+	
+	console_println("initialising keyboard...");
 	keyboard_init();
 	
-	vga_println("maskable interrupts will be enabled after next instruction.");
+	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
 	
-	// while (1);  // freeze so the CPU doesn’t start interpreting RAM
-
-
-
-	
-	vga_println("initializing disk...");
-
+	console_println("initializing disk...");
 	irq_set_handler(14, ata_irq_handler);
 	disk_init();
-	vga_println("reading sector 0...");
+	console_println("reading sector 0...");
 	uint8_t buf[512];
 	disk_read(0, buf);
-	vga_println("done reading sector 0. attempting to read GLFS superblock...");
+	console_println("done reading sector 0. attempting to read GLFS superblock...");
 	
 	char id[9];
 	for (int i = 0; i < 8; i++)
@@ -74,32 +63,68 @@ void kmain(void) {
 	int is_glfs_verified = check_glfs_magic(buf);
 	
 	if (is_glfs_verified) {
-		vga_print("read superblock identifier: ");
-		set_attribute_byte(0x02);
-		vga_print(id);
-		set_attribute_byte(0x0F);
-		vga_print("[ ");
-		set_attribute_byte(0x02);
-		vga_print("GLFS PASS");
-		set_attribute_byte(0x0F);
-		vga_print(" ]");
-		vga_println("");
+		console_print("read superblock identifier: ");
+		console_set_color(0x00FF00);
+		console_print(id);
+		console_set_color(0xFFFFFF);
+		console_print("[ ");
+		console_set_color(0x00FF00);
+		console_print("GLFS PASS");
+		console_set_color(0xFFFFFF);
+		console_print(" ]");
+		console_println("");
 	} else {
-		set_attribute_byte(0x4F);
-		vga_println("Unable to verify primary slave as GLFS disk.");
+		console_set_background_color(0xFF0000);
+		console_set_color(0xFFFFFF);
+		console_println("Unable to verify primary slave as GLFS disk.");
 		while (1) ;
 	}
 	
-	glfs_read_directory();
+	//glfs_read_directory();
 
-	glfs_file_loader();
+	//glfs_file_loader();
 	
-
+	console_set_color(0xFFFFFF);
+	console_set_background_color(0x0000FF);
+	console_println("--- BoinkOS Kernel --------------------------------------------");
+	console_println("--- ASCII Test Seq --------------------------------------------");
+	console_set_background_color(0x00AA00);
+	console_println("  ! \" # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ?");
+	console_println("@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _");
+	console_println("` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~  ");
+	console_set_background_color(0x000000);
+	console_set_color(0xFFFFFF);
+	console_println("");
+	console_print("OK to start console? (y/n) ");
+	
+	char conf = read_key();
+	console_set_color(0x9019ff);
+	console_putc(conf);
+	console_set_color(0xFFFFFF);
+	console_putc('\n');
+	if (conf != 'Y' && conf != 'y') {
+		console_set_background_color(0xFF0000);
+		console_set_color(0xFFFFFF);
+		console_println("Console aborted. Restart system.");
+		while (1);
+	} else {
+		console_set_background_color(0x9019ff);
+		console_println("\n\n~~~ Welcome to BoinkOS! ~~~                  ");
+		console_set_color(0xc98fff);
+		console_println("~ where there is a shell, there is a way... ~\n\n");
+		console_set_background_color(0x000000);
+		console_set_color(0xFFFFFF);
+	}
+	
+	char input[128];
 	while (1) {
-		if (kbd_has_char()) {
-			char c = kbd_read_char();
-			
-			vga_printchar(c);  // or your own print fn
-		}
-	}*/
+		console_set_color(0xFFFF00);
+		console_print("boink$ ");
+		console_set_color(0xFFFFFF);
+		console_input(input, sizeof(input));
+		console_print("ECHO: ");
+		console_print(input);
+		console_putc('\n');
+		console_putc('\n');
+	}
 }
