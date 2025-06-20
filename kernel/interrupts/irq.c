@@ -1,7 +1,8 @@
 #include "irq.h"
 #include "idt.h"
-#include "../drivers/vga_text/vga_text.h"
+#include "../klib/console/console.h"
 #include "pic.h"
+#include "../utils.h"
 
 #define MAX_IRQ_HANDLERS 16
 static irq_handler_t irq_handlers[MAX_IRQ_HANDLERS] = { 0 };
@@ -46,10 +47,10 @@ void irq_common_c(uint32_t irq_num) {
 	if (irq_num < MAX_IRQ_HANDLERS && irq_handlers[irq_num]) {
 		irq_handlers[irq_num](irq_num);  // call registered handler
 	} else {
-		vga_print("IRQ");
-		vga_printdec(irq_num);
-		vga_print(" fired; handled by default handler. Unadvisable to not have IRQ handler.");
-		vga_println("");
+		console_print("IRQ");
+		console_print(itoa(10, irq_num));
+		console_print(" fired; handled by default handler. Unadvisable to not have IRQ handler.");
+		console_println("");
 	}
 	
 	end_of_interrupt();

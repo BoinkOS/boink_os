@@ -80,8 +80,8 @@ void kmain(void) {
 		while (1) ;
 	}
 	
-	//glfs_read_directory();
-
+	glfs_read_directory();
+	glfs_list_files();
 	//glfs_file_loader();
 	
 	console_set_color(0xFFFFFF);

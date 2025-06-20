@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "../disk/disk.h"
-#include "../drivers/vga_text/vga_text.h"
+#include "../klib/console/console.h"
 #include "../utils.h"
 #include "../mem/mem.h"
 #include "glfs.h"
@@ -78,25 +78,17 @@ void glfs_read_directory() {
 }
 
 void glfs_list_files() {
-	vga_println("GLFS File Listing:");
-	vga_println("-------------------");
+	console_println("Files on disk:");
+	console_println("-------------------");
 
 	for (int i = 0; i < glfs_file_count; i++) {
-		vga_print(itoa(i + 1, 10));
-		vga_print(": ");
-		vga_print(glfs_files[i].filename);
-		vga_print(" | Start Sector: ");
-		vga_print(itoa(glfs_files[i].start_sector, 10));
-
-		vga_print(" | Size: ");
-		vga_print(itoa(glfs_files[i].size, 10));
-
-		vga_println(" bytes");
+		console_print(glfs_files[i].filename);
+		console_print(" (");
+		console_print(itoa(glfs_files[i].size, 10));
+		console_println(" bytes)");
 	}
 
-	vga_println("-------------------");
-
-	 vga_println("Select file to run (1 - N): ");
+	console_println("-------------------");
 }
 
 void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
@@ -123,25 +115,25 @@ void glfs_file_loader() {
 	glfs_list_files();
 
 	char key = read_key();
-	vga_print("You pressed: ");
-	vga_printchar(key);
-	vga_println("");
+	console_print("You pressed: ");
+	console_putc(key);
+	console_println("");
 
 	int selection = key - '1';
 
 	if (selection < 0 || selection >= glfs_file_count) {
-		vga_println("Invalid selection.");
+		console_println("Invalid selection.");
 		return;
 	}
 
 	glfs_file_entry* file = &glfs_files[selection];
-	vga_print("Loading file: ");
-	vga_println(file->filename);
+	console_print("Loading file: ");
+	console_println(file->filename);
 
 	uint8_t* load_address = (uint8_t*)0x100000;
 	glfs_load_file(file, load_address);
 
-	vga_println("File loaded. Attempting to jump...");
+	console_println("File loaded. Attempting to jump...");
 	
 	// UPER unsafe: cast to function pointer and jump
 	void (*entry_point)() = (void (*)())load_address;
