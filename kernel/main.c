@@ -11,6 +11,7 @@
 #include "drivers/video/fb.h"
 #include "drivers/video/text.h"
 #include "klib/console/console.h"
+#include "mem/paging.h"
 #include "utils.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
@@ -22,6 +23,7 @@ void kmain(void) {
 
 	console_set_color(0x888888);
 	console_println("vesa mode entered, gdt loaded, kernel loaded, protected mode entered prior to jumping to kernel.\n");
+	paging_init();
 	console_set_color(0xFFFFFF);
 	
 	console_println("hello from boink kernel!");
@@ -127,4 +129,6 @@ void kmain(void) {
 		console_putc('\n');
 		console_putc('\n');
 	}
+	
+	while (1) {};
 }

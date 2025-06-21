@@ -1,5 +1,8 @@
 #include "idt.h"
 #include "../llio.h"
+#include "../mem/paging.h"
+
+extern void page_fault_handler();
 
 static idt_desc _idt[MAX_INTERRUPTS];
 static idtr _idtr;
@@ -30,6 +33,9 @@ void idt_init(uint16_t code_selector) {
 	for (int i = 0; i < 32; ++i) {
 		install_ir_handler(i, FLAGS, code_selector, idt_default_handler);
 	}
+	
+	// custom
+	install_ir_handler(14, FLAGS, code_selector, page_fault_handler);
 
 	idt_install();
 }
