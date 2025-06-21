@@ -3,6 +3,7 @@
 #include "../../drivers/video/text.h"
 #include "../input/keyboard/keyboard.h"
 #include "../uptime/uptime.h"
+#include "../../utils.h"
 
 static uint32_t cursor_x = 0;
 static uint32_t cursor_y = 0;
@@ -87,6 +88,14 @@ void console_println(const char *str) {
 		console_putc(*str++);
 	}
 	console_putc('\n');
+}
+
+void console_print_dec(uint32_t i) {
+	console_print(itoa(i, 10));
+}
+
+void console_print_hex(uint32_t i) {
+	console_print(itoa(i, 16));
 }
 
 void console_input(char *buf, uint32_t max_len) {

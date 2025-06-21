@@ -1,9 +1,11 @@
 // utils.c
 #include "utils.h"
+#include "klib/uptime/uptime.h"
 #include "klib/input/keyboard/keyboard.h"
 #include <stddef.h>
+#include <stdint.h>
 
-char* itoa(int val, int base){
+char* itoa(uint32_t val, int base){
 	static char buf[32] = {0};
 	int i = 30;
 	for(; val && i ; --i, val /= base)
@@ -29,4 +31,13 @@ char read_key() {
 		}
 	}
 	return c;
+}
+
+void sleep(uint32_t ticks) {
+	uint32_t now = uptime_ticks();
+	uint32_t dest = now + ticks;
+	
+	while (dest > now) {
+		now = uptime_ticks();
+	} 
 }
