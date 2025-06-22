@@ -159,7 +159,7 @@ void console_clear() {
 	cursor_y = 0;
 }
 
-static void draw_cursor() {
+void draw_cursor() {
 	for (uint32_t y = 0; y < FONT_HEIGHT; ++y) {
 		for (uint32_t x = 0; x < FONT_WIDTH; ++x) {
 			put_pixel(cursor_x * FONT_WIDTH + x, cursor_y * FONT_HEIGHT + y, text_color);
@@ -167,7 +167,7 @@ static void draw_cursor() {
 	}
 }
 
-static void erase_cursor() {
+void erase_cursor() {
 	draw_char(cursor_x * FONT_WIDTH, cursor_y * FONT_HEIGHT, text_color, background_color, ' ');
 }
 
