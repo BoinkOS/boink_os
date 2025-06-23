@@ -88,6 +88,8 @@ void kmain(void) {
 	glfs_list_files();
 	//glfs_file_loader();
 	
+	disable_frame_debug();
+	
 	console_set_color(0xFFFFFF);
 	console_set_background_color(0x0000FF);
 	console_println("--- BoinkOS Kernel --------------------------------------------");
@@ -120,9 +122,9 @@ void kmain(void) {
 		console_set_color(0xFFFFFF);
 	}
 	
-	disable_frame_debug();
+	test_paging(1);
 	
-	char input[128];
+	/*char input[128];
 	while (1) {
 		console_set_color(0xFFFF00);
 		console_print("boink$ ");
@@ -134,5 +136,5 @@ void kmain(void) {
 		console_putc('\n');
 	}
 	
-	while (1) {};
+	while (1) {};*/
 }

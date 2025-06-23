@@ -14,3 +14,8 @@ void load_page_directory(uint32_t* page_directory);
 void enable_paging();
 void page_fault_handler();
 void test_page_fault_panic();
+
+uint32_t* get_page(uint32_t virtual_addr, int create);
+void map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags);
+void unmap_page(uint32_t virtual_addr);
+void test_paging(int should_test_page_fault);

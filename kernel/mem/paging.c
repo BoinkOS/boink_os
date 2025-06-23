@@ -1,9 +1,11 @@
 #include "paging.h"
+#include "frame_alloc.h"
 #include "../interrupts/idt.h"
 #include "../interrupts/isr.h"
 #include "../klib/console/console.h"
 #include "../drivers/video/fb.h"
 #include "../utils.h"
+#include <stddef.h>
 
 #define PAGE_DIRECTORY_ADDR 0x00100000
 #define PAGE_TABLES_ADDR	0x00101000
@@ -81,6 +83,103 @@ void page_fault_handler() {
 	for (;;) __asm__ __volatile__("hlt");
 
 	__asm__ __volatile__("popa; leave; iret");
+}
+
+uint32_t* get_page(uint32_t virtual_addr, int create) {
+	uint32_t dir_index = (virtual_addr >> 22) & 0x3FF;
+	uint32_t table_index = (virtual_addr >> 12) & 0x3FF;
+
+	uint32_t* page_table = (uint32_t*)(page_directory[dir_index] & 0xFFFFF000);
+
+	if (!(page_directory[dir_index] & PAGE_PRESENT)) {
+		if (!create) return NULL;
+
+		// alloc new page table
+		uint32_t frame = alloc_frame();
+		page_table = (uint32_t*)frame;
+
+		// clear it
+		for (int i = 0; i < 1024; i++) page_table[i] = 0;
+
+		// set it in directory
+		page_directory[dir_index] = ((uint32_t)page_table) | PAGE_PRESENT | PAGE_RW;
+	}
+
+	return &page_table[table_index];
+}
+
+void map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) {
+	uint32_t* page_entry = get_page(virtual_addr, 1);
+	*page_entry = (physical_addr & 0xFFFFF000) | (flags & 0xFFF);
+}
+
+void unmap_page(uint32_t virtual_addr) {
+	uint32_t* page_entry = get_page(virtual_addr, 0);
+	if (page_entry) {
+		*page_entry = 0;
+		asm volatile("invlpg (%0)" :: "r" (virtual_addr) : "memory"); // flush TLB
+	}
+}
+
+void test_paging(int should_test_page_fault) {
+	console_set_color(0x9019ff);
+	console_println("*-------------------------------------------------------------------*");
+	console_println("* void test_paging(int should_test_page_fault);                     *");
+	console_println("*                                                                   *");
+	console_println("* Virtual address 0x400000 will be mapped to a page, and a test     *");
+	console_println("* code will be written to it and read back.                         *");
+	console_println("*                                                                   *");
+	console_println("* Expect to read back 0xDEADBEEF.                                   *");
+	console_println("*-------------------------------------------------------------------*");
+	console_set_color(0x888888);
+	
+	enable_frame_debug();
+	
+	console_set_color(0xFFFFFF);
+	console_print("free memory before: ");
+	console_print_hex(get_free_memory());
+	console_println(" bytes");
+	
+	console_set_color(0x888888);
+	uint32_t phys = alloc_frame();
+	map_page(0x400000, phys, PAGE_PRESENT | PAGE_RW);
+	
+	console_set_color(0xFFFFFF);
+	console_print("mapped 0x400000 -> 0x");
+	console_print_hex(phys);
+	console_println("");
+	
+	console_print("free memory after writing: ");
+	console_print_hex(get_free_memory());
+	console_println(" bytes");
+	
+	uint32_t* test = (uint32_t*)0x400000;
+	*test = 0xDEADBEEF;
+	console_print("read back: 0x");
+	console_print_hex(*test);
+	console_println("");
+	
+	unmap_page(0x400000);
+	console_println("page unmapped.");
+	
+	console_set_color(0x888888);
+	free_frame(phys);
+	disable_frame_debug();
+	
+	console_set_color(0xFFFFFF);
+	console_print("free memory after freeing: ");
+	console_print_hex(get_free_memory());
+	console_println(" bytes");
+	
+	if (should_test_page_fault) {
+		console_set_color(0x9019ff);
+		console_println("should_test_page_fault=1");
+		console_println("Testing access to unmapped memory (should panic)...");
+		volatile uint32_t dead = *test; // this should trigger page fault handler
+		console_print("Somehow read: ");
+		console_print_hex(dead);
+		console_println("");
+	}
 }
 
 void test_page_fault_panic() {
