@@ -12,6 +12,7 @@
 #include "drivers/video/text.h"
 #include "klib/console/console.h"
 #include "mem/paging.h"
+#include "mem/frame_alloc.h"
 #include "utils.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
@@ -23,6 +24,7 @@ void kmain(void) {
 
 	console_set_color(0x888888);
 	console_println("vesa mode entered, gdt loaded, kernel loaded, protected mode entered prior to jumping to kernel.\n");
+	frame_allocator_init();
 	paging_init();
 	console_set_color(0xFFFFFF);
 	
@@ -111,12 +113,14 @@ void kmain(void) {
 		while (1);
 	} else {
 		console_set_background_color(0x9019ff);
-		console_println("\n\n~~~ Welcome to BoinkOS! ~~~                  ");
+		console_println("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
 		console_set_color(0xc98fff);
 		console_println("~ where there is a shell, there is a way... ~\n\n");
 		console_set_background_color(0x000000);
 		console_set_color(0xFFFFFF);
 	}
+	
+	disable_frame_debug();
 	
 	char input[128];
 	while (1) {
