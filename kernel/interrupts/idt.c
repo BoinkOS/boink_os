@@ -176,15 +176,6 @@ void rudimentry_exception_logger(registers_t* regs) {
 
 void dump_registers(registers_t* regs) {
 	console_println("Register dump:");
-	
-	typedef struct {
-		uint32_t gs, fs, es, ds;
-		uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-		uint32_t int_num, err_code;
-		uint32_t eip, cs, eflags, useresp, ss;
-	} registers_t;
-
-
 	console_print(" DS: "); console_print_hex(regs->ds); console_println("");
 	console_print(" ES: "); console_print_hex(regs->es); console_println("");
 	console_print(" FS: "); console_print_hex(regs->fs); console_println("");
