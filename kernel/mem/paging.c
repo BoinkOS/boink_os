@@ -1,9 +1,8 @@
 #include "paging.h"
 #include "frame_alloc.h"
-#include "../interrupts/idt.h"
-#include "../interrupts/isr.h"
 #include "../klib/console/console.h"
 #include "../drivers/video/fb.h"
+#include "../interrupts/idt.h"
 #include "../utils.h"
 #include <stddef.h>
 
@@ -14,6 +13,7 @@ uint32_t* page_directory = (uint32_t*)PAGE_DIRECTORY_ADDR;
 
 void paging_init() {
 	console_println("initializing paging...");
+	set_exception_handler(14, page_fault_handler);
 
 	uint32_t framebuffer_addr = *FRAMEBUFFER_ADDRESS_PTR;
 	uint16_t framebuffer_width = *FRAMEBUFFER_WIDTH_PTR;
@@ -65,24 +65,33 @@ void enable_paging() {
 	asm volatile("mov %0, %%cr0" :: "r"(cr0));
 }
 
-void page_fault_handler() {
-	__asm__ __volatile__("pusha");
-	__asm__ __volatile__("cli");
+void flush_tlb_single(uint32_t addr) {
+	asm volatile("invlpg (%0)" : : "r" (addr) : "memory");
+}
+
+int page_fault_handler(uint32_t int_num, uint32_t error_code) {
+	console_println("!!! PAGE FAULT OCCURRED !!!");
+	console_print("Faulting address: 0x");
 	
 	uint32_t faulting_address;
 	asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
-	
-	console_set_background_color(0xFF0000);
-	console_set_color(0xFFFFFF);
-	console_println("!!! PANIC !!!");
-	console_print("PAGE FAULT at address: 0x");
 	console_print_hex(faulting_address);
-	console_println("\n\nThe kernel is now in an unrecoverable state.");
-	console_println("BoinkOS needs to restart.");
+	console_println("");
 
-	for (;;) __asm__ __volatile__("hlt");
-
-	__asm__ __volatile__("popa; leave; iret");
+	console_println("BoinkOS will attempt to resolve the page fault by mapping a new page. If the fault cannot be resolved, the kernel will panic.");
+	// let's say we can "recover" if the address is some dummy safe region
+	if (faulting_address >= 0x400000 && faulting_address < 0x401000) {
+		console_println("BoinkOS is able to resolve the fault. Resolving by mapping missing page...");
+	
+		uint32_t phys = alloc_frame();
+		map_page(faulting_address & 0xFFFFF000, phys, PAGE_PRESENT | PAGE_RW);
+		flush_tlb_single(faulting_address & 0xFFFFF000); 
+		console_println("Mapped missing page, execution will resume.");
+		return 1;  // resolved!
+	}
+	
+	console_println("BoinkOS is not able to resolve the fault. Kernel will panic.");
+	return 0;  // unrecoverable, let kernel panic
 }
 
 uint32_t* get_page(uint32_t virtual_addr, int create) {
@@ -174,12 +183,23 @@ void test_paging(int should_test_page_fault) {
 	if (should_test_page_fault) {
 		console_set_color(0x9019ff);
 		console_println("should_test_page_fault=1");
-		console_println("Testing access to unmapped memory (should panic)...");
+		console_println("Testing access to unmapped memory (0x400000, should recover)...");
 		volatile uint32_t dead = *test; // this should trigger page fault handler
-		console_print("Somehow read: ");
+		console_print("Recovered and read: ");
 		console_print_hex(dead);
 		console_println("");
-	}
+
+		console_set_color(0x9019ff);
+		console_println("Testing access to unmapped memory outside recoverable region (0xFFFFF000, should panic)...");
+          	
+		volatile uint32_t* bad = (uint32_t*)0xFFFFF000; // outside recoverable range
+		uint32_t boom = *bad; // should panic
+          
+		console_set_color(0xffffff);
+		console_print("If you see this, the kernel did NOT panic (preposterous situation). Read: 0x");
+		console_print_hex(boom);
+		console_println(".");
+	}    	
 }
 
 void test_page_fault_panic() {

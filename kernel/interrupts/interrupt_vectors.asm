@@ -1,3 +1,5 @@
+[bits 32]
+
 section .text
 extern irq_common_c			; C entry point (takes IRQ number)
 

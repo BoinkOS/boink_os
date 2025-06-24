@@ -7,6 +7,9 @@ KERNEL_OBJS := $(patsubst kernel/%.c, build/%.o, $(KERNEL_SRCS))
 IVEC_SRC := kernel/interrupts/interrupt_vectors.asm
 IVEC_OBJ := build/interrupts/interrupt_vectors.o
 
+EVEC_SRC := kernel/interrupts/exception_vectors.asm
+EVEC_OBJ := build/interrupts/exception_vectors.o
+
 # put main.o first when linking
 KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
 					$(filter-out build/main.o, $(KERNEL_OBJS))
@@ -43,9 +46,13 @@ $(IVEC_OBJ): $(IVEC_SRC) | build
 	@mkdir -p $(dir $@)
 	nasm -f elf32 $(IVEC_SRC) -o $(IVEC_OBJ)
 
+$(EVEC_OBJ): $(EVEC_SRC) | build
+	@mkdir -p $(dir $@)
+	nasm -f elf32 $(EVEC_SRC) -o $(EVEC_OBJ)
+
 # link kernel with main.o first
-$(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(LINKER_SCRIPT)
-	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) -o $(KERNEL_BIN)
+$(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(EVEC_OBJ) $(LINKER_SCRIPT)
+	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(EVEC_OBJ) -o $(KERNEL_BIN)
 
 # build bootable image
 $(IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)

@@ -26,6 +26,7 @@ void kmain(void) {
 	console_println("vesa mode entered, gdt loaded, kernel loaded, protected mode entered prior to jumping to kernel.\n");
 	frame_allocator_init();
 	paging_init();
+	asm volatile ("fninit");
 	console_set_color(0xFFFFFF);
 	
 	console_println("hello from boink kernel!");
@@ -124,7 +125,7 @@ void kmain(void) {
 	
 	test_paging(1);
 	
-	/*char input[128];
+	char input[128];
 	while (1) {
 		console_set_color(0xFFFF00);
 		console_print("boink$ ");
@@ -136,5 +137,5 @@ void kmain(void) {
 		console_putc('\n');
 	}
 	
-	while (1) {};*/
+	while (1) {};
 }
