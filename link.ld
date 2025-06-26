@@ -1,18 +1,22 @@
 ENTRY(kmain)
 
 SECTIONS {
-	. = 0x1000;  /* load address in RAM */
+    . = 0x1000;
 
-	.text : {
-		*(.text)
-	}
+    .text : {
+        *(.text)
+    }
 
-	.data : {
-		*(.data)
-	}
+    .rodata : {
+        *(.rodata)
+    }
 
-	.bss : {
-		*(.bss COMMON)
-		*(COMMON)
-	}
+    .data : {
+        *(.data)
+    }
+
+    .bss : {
+        *(.bss)
+        *(COMMON)
+    }
 }

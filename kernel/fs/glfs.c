@@ -1,17 +1,49 @@
 #include <stdint.h>
 #include "../disk/disk.h"
 #include "../klib/console/console.h"
+#include "../klib/kscratch/kscratch.h"
 #include "../utils.h"
 #include "../mem/mem.h"
+#include "../mem/paging.h"
+#include "../mem/frame_alloc.h"
 #include "glfs.h"
 
 glfs_file_entry glfs_files[MAX_FILES];
 int glfs_file_count = 0;
 
-uint8_t dir_buffer[SECTOR_SIZE * 256]; 
-int dir_buffer_size = 0;
-
 uint8_t end_marker[] = "__END__\n";
+#define GLFS_DIR_BUFFER_VADDR 0xC1000000
+#define GLFS_DIR_BUFFER_PAGES 2 // enough for 1024 entries = 20k
+#define GLFS_TEMP_SECTOR_BUF 0xC2000000
+#define USER_BIN_BASE 0x40000000
+#define USER_BIN_PAGES 16 // adjust based on file size
+
+void glfs_init_buffers() {
+	for (int i = 0; i < GLFS_DIR_BUFFER_PAGES; i++) {
+		uint32_t phys = alloc_frame();
+		map_page(GLFS_DIR_BUFFER_VADDR + i * 0x1000, phys, PAGE_PRESENT | PAGE_RW | PAGE_KERNEL);
+		flush_tlb_single(GLFS_DIR_BUFFER_VADDR + i * 0x1000);
+	}
+}
+
+void glfs_map_temp_sector_buffer() {
+	uint32_t phys = alloc_frame();
+	map_page(GLFS_TEMP_SECTOR_BUF, phys, PAGE_PRESENT | PAGE_RW | PAGE_KERNEL);
+	flush_tlb_single(GLFS_TEMP_SECTOR_BUF);
+}
+
+void* glfs_map_user_program(uint32_t size) {
+	uint32_t pages = (size + 0xFFF) / 0x1000;
+	uint32_t base = USER_BIN_BASE;
+
+	for (uint32_t i = 0; i < pages; i++) {
+		uint32_t phys = alloc_frame();
+		map_page(base + i * 0x1000, phys, PAGE_PRESENT | PAGE_RW | PAGE_USER);
+		flush_tlb_single(base + i * 0x1000);
+	}
+
+	return (void*)base;
+}
 
 int check_glfs_magic(uint8_t* buffer) {
 	const char* expected = "GLFSv0\n";
@@ -31,26 +63,23 @@ int check_glfs_magic(uint8_t* buffer) {
 }
 
 void glfs_read_directory() {
-	uint8_t sector[SECTOR_SIZE];
+	uint8_t* dir_buffer = (uint8_t*)kscratch_zero(1);
+	uint8_t* sector = (uint8_t*)kscratch_zero(2);
 	int sector_num = 1;
-	
+	int dir_buffer_size = 0;
 	int done = 0;
 
-	dir_buffer_size = 0;
-
-	while (!done) {
+	while (!done && dir_buffer_size + SECTOR_SIZE <= 0x1000) { // max 4KB
 		disk_read(sector_num, sector);
 
-		for (int i = 0; i < SECTOR_SIZE; i++) {
-			dir_buffer[dir_buffer_size++] = sector[i];
-		}
+		mem_cpy(dir_buffer + dir_buffer_size, sector, SECTOR_SIZE);
+		dir_buffer_size += SECTOR_SIZE;
 
-		if (dir_buffer_size >= 8) { 
-			for (int i = 0; i <= dir_buffer_size - 8; i++) {
-				if (mem_cmp(&dir_buffer[i], end_marker, 8) == 0) {
-					dir_buffer_size = i;
-					done = 1;
-				}
+		for (int i = 0; i <= dir_buffer_size - 8; i++) {
+			if (mem_cmp(&dir_buffer[i], end_marker, 8) == 0) {
+				dir_buffer_size = i;
+				done = 1;
+				break;
 			}
 		}
 
@@ -67,7 +96,7 @@ void glfs_read_directory() {
 		glfs_file_entry* entry = &glfs_files[glfs_file_count];
 
 		mem_cpy(entry->filename, &dir_buffer[offset], FILENAME_SIZE);
-		entry->filename[32] = '\0'; // null-terminate
+		entry->filename[32] = '\0';
 
 		entry->start_sector = *((uint32_t*)(&dir_buffer[offset + 32]));
 		entry->size = *((uint32_t*)(&dir_buffer[offset + 36]));
@@ -95,7 +124,7 @@ void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
 	uint32_t sector = file->start_sector;
 	uint32_t remaining = file->size;
 
-	uint8_t buffer[SECTOR_SIZE];
+	uint8_t* buffer = (uint8_t*)GLFS_TEMP_SECTOR_BUF;
 	uint8_t* dest = load_address;
 
 	while (remaining > 0) {
@@ -130,12 +159,14 @@ void glfs_file_loader() {
 	console_print("Loading file: ");
 	console_println(file->filename);
 
-	uint8_t* load_address = (uint8_t*)0x100000;
-	glfs_load_file(file, load_address);
+	// allocate a scratch page for file loading
+	uint8_t* scratch_load_addr = (uint8_t*)kscratch_zero(3);
 
-	console_println("File loaded. Attempting to jump...");
-	
-	// UPER unsafe: cast to function pointer and jump
-	void (*entry_point)() = (void (*)())load_address;
+	// only safe for files <4KB
+	glfs_load_file(file, scratch_load_addr);
+	console_println("File loaded.");
+	console_println("Attempting to jump to entry point...");
+
+	void (*entry_point)() = (void (*)())scratch_load_addr;
 	entry_point();
 }

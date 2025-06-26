@@ -9,7 +9,6 @@ enter_pm:
 
 ; ---------------------------------------------
 [bits 32]
-
 protected_mode:
 	; set up segments
 	mov ax, 0x10	   ; data segment selector

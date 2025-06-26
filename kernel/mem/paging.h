@@ -5,6 +5,7 @@
 #define PAGE_TABLES(x) (x * 1024 * PAGE_SIZE) // bytes covered
 
 // page flags
+#define PAGE_KERNEL  0x0
 #define PAGE_PRESENT 0x1
 #define PAGE_RW      0x2
 #define PAGE_USER    0x4

@@ -18,4 +18,7 @@ int check_glfs_magic(uint8_t* buffer);
 void glfs_read_directory();
 void glfs_list_files();
 void glfs_load_file(glfs_file_entry* file, uint8_t* load_address);
+void glfs_init_buffers();
 void glfs_file_loader();
+static void glfs_map_temp_sector_buffer();
+static void* glfs_map_user_program(uint32_t size);

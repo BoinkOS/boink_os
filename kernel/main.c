@@ -13,6 +13,7 @@
 #include "mem/mem.h"
 #include "mem/paging.h"
 #include "mem/frame_alloc.h"
+#include "klib/kscratch/kscratch.h"
 #include "utils.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
@@ -56,44 +57,9 @@ void kmain(void) {
 	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
 	
-	/*console_println("initializing disk...");
-	irq_set_handler(14, ata_irq_handler);
-	disk_init();
-	console_println("reading sector 0...");
-	uint8_t buf[512];
-	disk_read(0, buf);
-	console_println("done reading sector 0. attempting to read GLFS superblock...");
+	kscratch_init();
 	
-	char id[9];
-	for (int i = 0; i < 8; i++)
-		id[i] = buf[i];
-	id[8] = '\0';
-	
-	int is_glfs_verified = check_glfs_magic(buf);
-	
-	if (is_glfs_verified) {
-		console_print("read superblock identifier: ");
-		console_set_color(0x00FF00);
-		console_print(id);
-		console_set_color(0xFFFFFF);
-		console_print("[ ");
-		console_set_color(0x00FF00);
-		console_print("GLFS PASS");
-		console_set_color(0xFFFFFF);
-		console_print(" ]");
-		console_println("");
-	} else {
-		console_set_background_color(0xFF0000);
-		console_set_color(0xFFFFFF);
-		console_println("Unable to verify primary slave as GLFS disk.");
-		while (1) ;
-	}
-	
-	glfs_read_directory();
-	glfs_list_files();
-	//glfs_file_loader();*/
-	
-	//disable_frame_debug();
+	disable_frame_debug();
 	
 	console_set_color(0xFFFFFF);
 	console_set_background_color(0x0000FF);
@@ -126,12 +92,52 @@ void kmain(void) {
 		console_set_background_color(0x000000);
 		console_set_color(0xFFFFFF);
 	}
+	
+	console_println("initializing disk...");
+	irq_set_handler(14, ata_irq_handler);
+	disk_init();
 
-	tss_init(0x9FBFF); // setup TSS for user mode
+	console_println("reading sector 0...");
+	uint8_t* buf = (uint8_t*)kscratch_zero(0);
+
+	disk_read(0, buf);
+
+	console_println("done reading sector 0. attempting to read GLFS superblock...");
+
+	char id[9];
+	for (int i = 0; i < 8; i++)
+		id[i] = buf[i];
+	id[8] = '\0';
+
+	int is_glfs_verified = check_glfs_magic(buf);
+
+	if (is_glfs_verified) {
+		console_print("read superblock identifier: ");
+		console_set_color(0x00FF00);
+		console_print(id);
+		console_set_color(0xFFFFFF);
+		console_print("[ ");
+		console_set_color(0x00FF00);
+		console_print("GLFS PASS");
+		console_set_color(0xFFFFFF);
+		console_print(" ]");
+		console_println("");
+	} else {
+		console_set_background_color(0xFF0000);
+		console_set_color(0xFFFFFF);
+		console_println("Unable to verify primary slave as GLFS disk.");
+		while (1);
+	}
+	
+	glfs_read_directory();
+	//glfs_list_files();
+	glfs_file_loader();
+
+	/*tss_init(0x9FBFF); // setup TSS for user mode
 	
 	syscall(SYSCALL_PUTCHAR, 66, 0, 0, 0, 0);
 	syscall(6, 66, 0, 0, 0, 0);
-	syscall(SYSCALL_EXIT, 0, 0, 0, 0, 0);
+	syscall(SYSCALL_EXIT, 0, 0, 0, 0, 0);*/
 
 	while (1);
 	
