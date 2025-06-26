@@ -17,12 +17,9 @@
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
 
-
-#include "sys/syscall_trampoline.h"
 #include "sys/syscall.h"
 #include "cpu/tss.h"
 extern void user_entry();
-extern void* make_syscall_trampoline(uint32_t syscall_num);
 
 void kmain(void) {
 	init_framebuffer();
@@ -131,8 +128,11 @@ void kmain(void) {
 	}
 
 	tss_init(0x9FBFF); // setup TSS for user mode
-
-	test_syscall_tramp();
+	
+	syscall(SYSCALL_PRINT, 0, 0, 0);
+	syscall(SYSCALL_PRINT, 0, 0, 0);
+	syscall(SYSCALL_PRINT, 0, 0, 0);
+	syscall(SYSCALL_PRINT, 0, 0, 0);
 
 	while (1);
 	

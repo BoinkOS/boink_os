@@ -6,3 +6,4 @@
 // add more as needed
 
 int syscall_handler(uint32_t int_num, uint32_t error_code);
+int syscall(int num, int arg1, int arg2, int arg3);
