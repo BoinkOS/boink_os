@@ -1,4 +1,3 @@
-// #include "drivers/vga_text/vga_text.h"
 #include "interrupts/idt.h"
 #include "interrupts/pic.h"
 #include "interrupts/irq.h"
@@ -11,11 +10,19 @@
 #include "drivers/video/fb.h"
 #include "drivers/video/text.h"
 #include "klib/console/console.h"
+#include "mem/mem.h"
 #include "mem/paging.h"
 #include "mem/frame_alloc.h"
 #include "utils.h"
 extern void pit_uptime_handler(uint32_t irq);
 extern void ata_irq_handler(uint32_t irq_num);
+
+
+#include "sys/syscall_trampoline.h"
+#include "sys/syscall.h"
+#include "cpu/tss.h"
+extern void user_entry();
+extern void* make_syscall_trampoline(uint32_t syscall_num);
 
 void kmain(void) {
 	init_framebuffer();
@@ -52,7 +59,7 @@ void kmain(void) {
 	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
 	
-	console_println("initializing disk...");
+	/*console_println("initializing disk...");
 	irq_set_handler(14, ata_irq_handler);
 	disk_init();
 	console_println("reading sector 0...");
@@ -87,9 +94,9 @@ void kmain(void) {
 	
 	glfs_read_directory();
 	glfs_list_files();
-	//glfs_file_loader();
+	//glfs_file_loader();*/
 	
-	disable_frame_debug();
+	//disable_frame_debug();
 	
 	console_set_color(0xFFFFFF);
 	console_set_background_color(0x0000FF);
@@ -102,7 +109,7 @@ void kmain(void) {
 	console_set_background_color(0x000000);
 	console_set_color(0xFFFFFF);
 	console_println("");
-	console_print("OK to start console? (y/n) ");
+	console_print("OK to proceed? (y/n) ");
 	
 	char conf = read_key();
 	console_set_color(0x9019ff);
@@ -112,7 +119,7 @@ void kmain(void) {
 	if (conf != 'Y' && conf != 'y') {
 		console_set_background_color(0xFF0000);
 		console_set_color(0xFFFFFF);
-		console_println("Console aborted. Restart system.");
+		console_println("System aborted. Restart system.");
 		while (1);
 	} else {
 		console_set_background_color(0x9019ff);
@@ -122,10 +129,14 @@ void kmain(void) {
 		console_set_background_color(0x000000);
 		console_set_color(0xFFFFFF);
 	}
+
+	tss_init(0x9FBFF); // setup TSS for user mode
+
+	test_syscall_tramp();
+
+	while (1);
 	
-	test_paging(1);
-	
-	char input[128];
+	/*char input[128];
 	while (1) {
 		console_set_color(0xFFFF00);
 		console_print("boink$ ");
@@ -137,5 +148,5 @@ void kmain(void) {
 		console_putc('\n');
 	}
 	
-	while (1) {};
+	while (1) {};*/
 }

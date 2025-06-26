@@ -36,6 +36,11 @@ extern void isr29_handler();
 extern void isr30_handler();
 extern void isr31_handler();
 
+extern void syscall_entry();
+
+
+
+
 static idt_desc _idt[MAX_INTERRUPTS];
 static idtr _idtr;
 
@@ -96,6 +101,8 @@ void idt_init(uint16_t code_selector) {
 	install_ir_handler(29, FLAGS, code_selector, isr29_handler);
 	install_ir_handler(30, FLAGS, code_selector, isr30_handler);
 	install_ir_handler(31, FLAGS, code_selector, isr31_handler);
+	
+	install_ir_handler(0x80, 0xEE, 0x08, syscall_entry);
 
 	idt_install();
 }

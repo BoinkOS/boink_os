@@ -45,7 +45,13 @@ void paging_init() {
 			page_table[i] = address | PAGE_PRESENT | PAGE_RW;
 		}
 
-		page_directory[table] = ((uint32_t)page_table) | PAGE_PRESENT | PAGE_RW;
+		uint32_t flags = PAGE_PRESENT | PAGE_RW;
+		if ((table * 1024 * PAGE_SIZE) >= 0x400000) {
+			// make 0x400000 and up userland-safe
+			flags |= PAGE_USER;
+		}
+
+		page_directory[table] = ((uint32_t)page_table) | flags;
 	}
 
 	load_page_directory(page_directory);
@@ -111,7 +117,7 @@ uint32_t* get_page(uint32_t virtual_addr, int create) {
 		for (int i = 0; i < 1024; i++) page_table[i] = 0;
 
 		// set it in directory
-		page_directory[dir_index] = ((uint32_t)page_table) | PAGE_PRESENT | PAGE_RW;
+		page_directory[dir_index] = ((uint32_t)page_table) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
 	}
 
 	return &page_table[table_index];
