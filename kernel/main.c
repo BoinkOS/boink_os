@@ -129,10 +129,9 @@ void kmain(void) {
 
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	syscall(SYSCALL_PRINT, 0, 0, 0);
-	syscall(SYSCALL_PRINT, 0, 0, 0);
-	syscall(SYSCALL_PRINT, 0, 0, 0);
-	syscall(SYSCALL_PRINT, 0, 0, 0);
+	syscall(SYSCALL_PUTCHAR, 66, 0, 0, 0, 0);
+	syscall(6, 66, 0, 0, 0, 0);
+	syscall(SYSCALL_EXIT, 0, 0, 0, 0, 0);
 
 	while (1);
 	
