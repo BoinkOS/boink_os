@@ -108,11 +108,15 @@ void glfs_read_directory() {
 	}
 }
 
-void glfs_list_files() {
+void glfs_list_files(int should_number) {
 	console_println("Files on disk:");
 	console_println("-------------------");
 
 	for (int i = 0; i < glfs_file_count; i++) {
+		if (should_number) {
+			console_print(itoa(i+1, 10));
+			console_print(". ");
+		}
 		console_print(glfs_files[i].filename);
 		console_print(" (");
 		console_print(itoa(glfs_files[i].size, 10));
@@ -142,7 +146,7 @@ void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
 	}
 }
 
-void* glfs_exec(const char* filename) {
+void* glfs_map_and_load_file(const char* filename) {
 	for (int i = 0; i < glfs_file_count; i++) {
 		if (strcmp(glfs_files[i].filename, filename) == 0) {
 			glfs_file_entry* file = &glfs_files[i];
@@ -163,12 +167,12 @@ void* glfs_exec(const char* filename) {
 	return NULL;
 }
 
-void test_user_exec() {
+void exec_bin(const char* filename) {
 	glfs_init_buffers();
 	glfs_map_temp_sector_buffer();
 	glfs_read_directory();
 
-	void* entry_point = glfs_exec("program.bin");
+	void* entry_point = glfs_map_and_load_file(filename);
 
 	if (!entry_point) return;
 
@@ -201,4 +205,50 @@ void test_user_exec() {
 	console_println("Switching to user mode...");
 	console_println("---------------------------------------------");
 	switch_to_user_mode((uint32_t)entry_point, user_stack);
+}
+
+void glfs_prompt() {
+	glfs_list_files(1);
+	console_print("What file would you like to load? ");
+
+	char input[10];
+	console_set_color(0x9019ff);
+	console_input(input, sizeof(input));
+	console_set_color(0xffffff);
+
+	int f = atoi(input);
+
+	if (f <= 0 || f > glfs_file_count) {
+		console_set_background_color(0xff0000);
+		console_print("No file at index ");
+		console_print_dec(f);
+		console_print(".");
+		console_set_background_color(0x000000);
+		console_putc('\n');
+		return;
+	}
+
+	const char* filename = glfs_files[f - 1].filename;
+	console_print("File to load: ");
+	console_print(filename);
+	console_putc('\n');
+
+	const char* ext = filename;
+	for (int i = 0; filename[i]; i++) {
+		if (filename[i] == '.') {
+			ext = &filename[i + 1];
+		}
+	}
+	
+	if (!strcmp(ext, "bin")) {
+		exec_bin(filename);
+	} else if (!strcmp(ext, "elf")) {
+		//exec_elf(filename);
+	} else {
+		console_set_background_color(0xff0000);
+		console_print("Unknown file type: .");
+		console_print(ext);
+		console_set_background_color(0x000000);
+		console_putc('\n');
+	}
 }

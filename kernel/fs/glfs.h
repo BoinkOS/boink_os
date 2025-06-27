@@ -16,11 +16,11 @@ typedef struct {
 
 int check_glfs_magic(uint8_t* buffer);
 void glfs_read_directory();
-void glfs_list_files();
+void glfs_list_files(int should_number);
 void glfs_load_file(glfs_file_entry* file, uint8_t* load_address);
 void glfs_init_buffers();
-//void glfs_file_loader();
 void glfs_map_temp_sector_buffer();
 void* glfs_map_user_program(uint32_t size);
-void test_user_exec();
-void* glfs_exec(const char* filename);
+void exec_bin(const char* filename);
+void* glfs_map_and_load_file(const char* filename);
+void glfs_prompt();

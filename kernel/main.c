@@ -133,13 +133,12 @@ void kmain(void) {
 	}
 	
 	glfs_read_directory();
-	glfs_list_files();
 	
 	
 
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	test_user_exec();
+	glfs_prompt();
 
 
 	

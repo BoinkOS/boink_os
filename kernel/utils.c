@@ -53,3 +53,22 @@ int strcmp(const char* s1, const char* s2) {
 	}
 	return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
+
+int atoi(const char* str) {
+	int num = 0;
+	int i = 0;
+	bool is_negative = false;
+	
+	if(str[i] == '-'){
+		is_negative = true;
+		i++;
+	}
+	
+	while (str[i] && (str[i] >= '0' && str[i] <= '9')){
+		num = num * 10 + (str[i] - '0');
+		i++;
+	}
+	
+	if(is_negative) num = -1 * num;
+	return num;
+}
