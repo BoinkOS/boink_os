@@ -6,8 +6,8 @@
 #include "../utils.h"
 #include <stddef.h>
 
-#define PAGE_DIRECTORY_ADDR 0x00100000
-#define PAGE_TABLES_ADDR	0x00101000
+#define PAGE_DIRECTORY_ADDR 0x00200000
+#define PAGE_TABLES_ADDR	0x00201000
 
 uint32_t* page_directory = (uint32_t*)PAGE_DIRECTORY_ADDR;
 
@@ -104,22 +104,23 @@ uint32_t* get_page(uint32_t virtual_addr, int create) {
 	uint32_t dir_index = (virtual_addr >> 22) & 0x3FF;
 	uint32_t table_index = (virtual_addr >> 12) & 0x3FF;
 
-	uint32_t* page_table = (uint32_t*)(page_directory[dir_index] & 0xFFFFF000);
-
 	if (!(page_directory[dir_index] & PAGE_PRESENT)) {
 		if (!create) return NULL;
 
-		// alloc new page table
 		uint32_t frame = alloc_frame();
-		page_table = (uint32_t*)frame;
+		uint32_t* page_table = (uint32_t*)frame;
 
-		// clear it
+		// zero out table
 		for (int i = 0; i < 1024; i++) page_table[i] = 0;
 
-		// set it in directory
-		page_directory[dir_index] = ((uint32_t)page_table) | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+		// now set directory entry WITH CORRECT FLAGS
+		page_directory[dir_index] = frame | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+		return &page_table[table_index];
 	}
 
+	// already exists — get pointer
+	uint32_t* page_table = (uint32_t*)(page_directory[dir_index] & 0xFFFFF000);
+	page_directory[dir_index] |= PAGE_USER;
 	return &page_table[table_index];
 }
 

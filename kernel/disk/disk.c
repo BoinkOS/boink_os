@@ -1,7 +1,7 @@
 #include "disk.h"
 #include "../llio.h"
 #include "../interrupts/pic.h"
-#include "../drivers/vga_text/vga_text.h"
+#include "../klib/console/console.h"
 #include <stddef.h>
 
 #define ATA_PRIMARY_IO	0x1F0
@@ -25,7 +25,7 @@ static void ata_wait_drq() {
 }
 
 static int ata_read(uint32_t lba, uint8_t* buffer) {
-	ata_irq_invoked = 0;
+	//ata_irq_invoked = 0;
 
 	ata_wait_bsy();
 

@@ -1,7 +1,7 @@
 #include <stdint.h>
 
-#define KSCRATCH_PAGE_COUNT 4
-#define KSCRATCH_BASE_VADDR 0xC4000000 
+#define KSCRATCH_PAGE_COUNT 16
+#define KSCRATCH_BASE_VADDR 0xD0000000 
 
 void kscratch_init();
 

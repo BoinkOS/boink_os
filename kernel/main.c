@@ -57,9 +57,9 @@ void kmain(void) {
 	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
 	
+	//enable_frame_debug();
+
 	kscratch_init();
-	
-	disable_frame_debug();
 	
 	console_set_color(0xFFFFFF);
 	console_set_background_color(0x0000FF);
@@ -82,16 +82,17 @@ void kmain(void) {
 	if (conf != 'Y' && conf != 'y') {
 		console_set_background_color(0xFF0000);
 		console_set_color(0xFFFFFF);
-		console_println("System aborted. Restart system.");
+		console_println("System suspended. Restart system.");
 		while (1);
-	} else {
-		console_set_background_color(0x9019ff);
-		console_println("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
-		console_set_color(0xc98fff);
-		console_println("~ where there is a shell, there is a way... ~\n\n");
-		console_set_background_color(0x000000);
-		console_set_color(0xFFFFFF);
 	}
+	
+	console_set_background_color(0x9019ff);
+	console_println("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
+	console_set_color(0xc98fff);
+	console_println("~ where there is a shell, there is a way... ~");
+	console_set_background_color(0x000000);
+	console_set_color(0xFFFFFF);
+	console_println("\n");
 	
 	console_println("initializing disk...");
 	irq_set_handler(14, ata_irq_handler);
@@ -99,7 +100,9 @@ void kmain(void) {
 
 	console_println("reading sector 0...");
 	uint8_t* buf = (uint8_t*)kscratch_zero(0);
-
+	console_print("buf = 0x");
+	console_print_hex((uint32_t)buf);
+	console_println("");
 	disk_read(0, buf);
 
 	console_println("done reading sector 0. attempting to read GLFS superblock...");
@@ -130,18 +133,35 @@ void kmain(void) {
 	}
 	
 	glfs_read_directory();
-	//glfs_list_files();
-	glfs_file_loader();
-
-	/*tss_init(0x9FBFF); // setup TSS for user mode
+	glfs_list_files();
 	
-	syscall(SYSCALL_PUTCHAR, 66, 0, 0, 0, 0);
-	syscall(6, 66, 0, 0, 0, 0);
-	syscall(SYSCALL_EXIT, 0, 0, 0, 0, 0);*/
-
-	while (1);
 	
-	/*char input[128];
+
+	tss_init(0x9FBFF); // setup TSS for user mode
+	
+	test_user_exec();
+
+
+	
+
+	console_print("Enter echo shell? (y/n) ");
+	conf = read_key();
+	console_set_color(0x9019ff);
+	console_putc(conf);
+	console_set_color(0xFFFFFF);
+	console_putc('\n');
+	if (conf != 'Y' && conf != 'y') {
+		console_set_background_color(0xFF0000);
+		console_set_color(0xFFFFFF);
+		console_print("System suspended. Restart system.");
+		while (1);
+	}
+	
+	console_set_color(0x9019ff);
+	console_println("\n\nBoinkOS Echo Shell");
+	console_set_color(0xFFFFFF);
+	console_println("\n");
+	char input[128];
 	while (1) {
 		console_set_color(0xFFFF00);
 		console_print("boink$ ");
@@ -152,6 +172,4 @@ void kmain(void) {
 		console_putc('\n');
 		console_putc('\n');
 	}
-	
-	while (1) {};*/
 }

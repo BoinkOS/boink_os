@@ -3,6 +3,7 @@
 #include "../../mem/paging.h"
 #include "../../mem/mem.h"
 #include "../../utils.h" 
+#include "../console/console.h"
 
 static uint32_t kscratch_phys_addrs[KSCRATCH_PAGE_COUNT] = { 0 };
 static uint8_t kscratch_in_use[KSCRATCH_PAGE_COUNT] = { 0 };
@@ -27,7 +28,13 @@ void* kscratch_get(uint32_t page_index) {
 void* kscratch_zero(uint32_t page_index) {
 	void* ptr = kscratch_get(page_index);
 	if (!ptr) return 0;
+	console_print("zeroing buf at vaddr: ");
+	console_print_hex((uint32_t)ptr);
+	console_print(" -> phys: ");
+	console_print_hex(kscratch_phys_addrs[page_index]);
+	console_println("");
 	memset(ptr, 0, 0x1000);
+	
 	return ptr;
 }
 

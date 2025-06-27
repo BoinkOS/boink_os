@@ -16,7 +16,9 @@ uint8_t end_marker[] = "__END__\n";
 #define GLFS_DIR_BUFFER_PAGES 2 // enough for 1024 entries = 20k
 #define GLFS_TEMP_SECTOR_BUF 0xC2000000
 #define USER_BIN_BASE 0x40000000
-#define USER_BIN_PAGES 16 // adjust based on file size
+#define USER_BIN_PAGES 4
+
+extern void switch_to_user_mode(uint32_t e, uint32_t s);
 
 void glfs_init_buffers() {
 	for (int i = 0; i < GLFS_DIR_BUFFER_PAGES; i++) {
@@ -140,33 +142,63 @@ void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
 	}
 }
 
-void glfs_file_loader() {
-	glfs_list_files();
+void* glfs_exec(const char* filename) {
+	for (int i = 0; i < glfs_file_count; i++) {
+		if (strcmp(glfs_files[i].filename, filename) == 0) {
+			glfs_file_entry* file = &glfs_files[i];
 
-	char key = read_key();
-	console_print("You pressed: ");
-	console_putc(key);
-	console_println("");
+			console_print("Mapping and loading file: ");
+			console_println(file->filename);
 
-	int selection = key - '1';
+			uint8_t* load_addr = (uint8_t*)glfs_map_user_program(file->size);
+			glfs_load_file(file, load_addr);
 
-	if (selection < 0 || selection >= glfs_file_count) {
-		console_println("Invalid selection.");
-		return;
+			console_println("Program loaded into user memory.");
+
+			return (void*)load_addr;
+		}
 	}
 
-	glfs_file_entry* file = &glfs_files[selection];
-	console_print("Loading file: ");
-	console_println(file->filename);
+	console_println("File not found.");
+	return NULL;
+}
 
-	// allocate a scratch page for file loading
-	uint8_t* scratch_load_addr = (uint8_t*)kscratch_zero(3);
+void test_user_exec() {
+	glfs_init_buffers();
+	glfs_map_temp_sector_buffer();
+	glfs_read_directory();
 
-	// only safe for files <4KB
-	glfs_load_file(file, scratch_load_addr);
-	console_println("File loaded.");
-	console_println("Attempting to jump to entry point...");
+	void* entry_point = glfs_exec("program.bin");
 
-	void (*entry_point)() = (void (*)())scratch_load_addr;
-	entry_point();
+	if (!entry_point) return;
+
+	uint32_t user_stack_base = 0x500000;
+
+	for (int i = 0; i < USER_BIN_PAGES; i++) {
+	    map_page(user_stack_base - i * 0x1000, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
+	    flush_tlb_single(user_stack_base - i * 0x1000);
+	}
+
+	uint32_t user_stack = user_stack_base + 0x4000 - 4;
+
+	console_print("entry = 0x");
+	console_print_hex((uint32_t)entry_point);
+	console_print(", stack = 0x");
+	console_print_hex(user_stack);
+	console_putc('\n');
+	
+	uint8_t* code = (uint8_t*)entry_point;
+	console_print("first 4 bytes at entry point: ");
+	console_print_hex(code[0]);
+	console_print(" ");
+	console_print_hex(code[1]);
+	console_print(" ");
+	console_print_hex(code[2]);
+	console_print(" ");
+	console_print_hex(code[3]);
+	console_print("\n");
+	
+	console_println("Switching to user mode...");
+	console_println("---------------------------------------------");
+	switch_to_user_mode((uint32_t)entry_point, user_stack);
 }

@@ -18,9 +18,15 @@ protected_mode:
 	mov gs, ax
 	mov ss, ax
 	
-	mov esp, 0x9000
+	mov esp, 0x9F000
 	
-	call 0x1000
+	mov esi, 0x8000       ; source buffer in low memory
+	mov edi, KERNEL_OFFSET     ; final kernel location
+	mov ecx, 51200        ; 100 sectors * 512 bytes
+
+	rep movsb
+	
+	jmp 0x08:0x00100000
 
 .hang:
 	jmp .hang

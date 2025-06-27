@@ -30,7 +30,7 @@ start:
 	jmp enter_pm
 
 ; constants
-KERNEL_OFFSET equ 0x1000
+KERNEL_OFFSET equ 0x100000
 STACK equ 0x7000
 VESA_MODE equ 0x118
 VESA_LFB equ 0x4000 ; linear framebuffer flag

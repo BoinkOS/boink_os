@@ -1,14 +1,14 @@
 ENTRY(kmain)
 
 SECTIONS {
-    . = 0x1000;
+    . = 0x00100000;
 
     .text : {
         *(.text)
     }
 
     .rodata : {
-        *(.rodata)
+        *(.rodata*)
     }
 
     .data : {
