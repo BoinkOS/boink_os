@@ -7,6 +7,8 @@
 #include "../mem/paging.h"
 #include "../mem/frame_alloc.h"
 #include "glfs.h"
+#include "../execs/elf/elf.h" 
+#include "../cpu/user_switch.h"
 
 glfs_file_entry glfs_files[MAX_FILES];
 int glfs_file_count = 0;
@@ -17,8 +19,6 @@ uint8_t end_marker[] = "__END__\n";
 #define GLFS_TEMP_SECTOR_BUF 0xC2000000
 #define USER_BIN_BASE 0x40000000
 #define USER_BIN_PAGES 4
-
-extern void switch_to_user_mode(uint32_t e, uint32_t s);
 
 void glfs_init_buffers() {
 	for (int i = 0; i < GLFS_DIR_BUFFER_PAGES; i++) {
@@ -243,7 +243,7 @@ void glfs_prompt() {
 	if (!strcmp(ext, "bin")) {
 		exec_bin(filename);
 	} else if (!strcmp(ext, "elf")) {
-		//exec_elf(filename);
+		exec_elf(filename);
 	} else {
 		console_set_background_color(0xff0000);
 		console_print("Unknown file type: .");
@@ -251,4 +251,45 @@ void glfs_prompt() {
 		console_set_background_color(0x000000);
 		console_putc('\n');
 	}
+}
+
+
+void exec_elf(const char* filename) {
+	glfs_init_buffers();
+	glfs_map_temp_sector_buffer();
+	glfs_read_directory();
+
+	for (int i = 0; i < glfs_file_count; i++) {
+		if (strcmp(glfs_files[i].filename, filename) == 0) {
+			glfs_file_entry* file = &glfs_files[i];
+
+			console_print("Loading ELF file: ");
+			console_println(file->filename);
+
+			uint8_t* elf_buf = map_temp_elf_buffer(file->size);
+			glfs_load_file(file, elf_buf);
+
+			void* entry_point = elf_load(elf_buf);
+
+			if (!entry_point) {
+				console_println("ELF load failed.");
+				return;
+			}
+
+			uint32_t user_stack_base = 0x500000;
+			for (int i = 0; i < 4; i++) {
+				map_page(user_stack_base - i * 0x1000, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
+				flush_tlb_single(user_stack_base - i * 0x1000);
+			}
+
+			uint32_t user_stack = user_stack_base + 0x4000 - 4;
+
+			console_println("Switching to user mode...");
+			console_println("---------------------------------------------");
+			switch_to_user_mode((uint32_t)entry_point, user_stack);
+			return;
+		}
+	}
+
+	console_println("ELF file not found.");
 }

@@ -13,7 +13,6 @@ typedef struct {
 	uint32_t size;
 } glfs_file_entry;
 
-
 int check_glfs_magic(uint8_t* buffer);
 void glfs_read_directory();
 void glfs_list_files(int should_number);
@@ -24,3 +23,4 @@ void* glfs_map_user_program(uint32_t size);
 void exec_bin(const char* filename);
 void* glfs_map_and_load_file(const char* filename);
 void glfs_prompt();
+void exec_elf(const char* filename);
