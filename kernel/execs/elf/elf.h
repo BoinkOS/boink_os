@@ -3,6 +3,17 @@
 #define EI_NIDENT 16
 #define PT_LOAD   1
 #define ELF_TEMP_LOAD 0xC3000000
+#define PIE_BASE_ADDR 0x400000
+
+#define ET_EXEC 2
+#define ET_DYN 3
+#define EM_386 3
+
+#define PT_LOAD 1
+
+#define PF_X 1  // execute
+#define PF_W 2  // write
+#define PF_R 4  // read
 
 typedef struct {
 	uint8_t  e_ident[EI_NIDENT];
