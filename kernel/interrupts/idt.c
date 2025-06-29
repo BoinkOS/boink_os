@@ -2,6 +2,8 @@
 #include "../llio.h"
 #include "../mem/paging.h"
 #include "../klib/panicshell/panic_console.h"
+#include "../klib/panicshell/shell.h"
+#include "../utils.h"
 
 extern void isr0_handler(); 
 extern void isr1_handler(); 
@@ -125,17 +127,12 @@ void extensible_exception_handler(registers_t* regs) {
 	if (int_num < MAX_EXCEPTION_HANDLERS && exception_handlers[int_num]) {
 		int result = exception_handlers[int_num](int_num, error_code);
 		if (result == 1) {
-			pshell_println(""); // replaces console_println
 			return;
 		}
 	}
 
 	pshell_init();
-
-	pshell_println("");
-	pshell_println("!!! KERNEL PANIC !!!");
-	pshell_println("");
-
+	
 	pshell_print("Unhandled exception: ");
 	pshell_print_dec(int_num);
 	pshell_print(" (");
@@ -147,19 +144,20 @@ void extensible_exception_handler(registers_t* regs) {
 	pshell_print_hex(error_code);
 	pshell_println("");
 
-	//dump_registers(regs);
+	dump_registers(regs);
 
-	//pshell_println("The kernel is now in an unrecoverable state.");
 	__asm__ __volatile__("sti");
-	char input[128];
-	while (1) {
-		pshell_print("moof> ");
-		pshell_input(input, sizeof(input));
-		pshell_print("ECHO: ");
-		pshell_print(input);
-		pshell_putc('\n');
-		pshell_putc('\n');
+
+	pshell_print("(type 's' for panic shell) ");
+	char conf = read_key();
+	pshell_putc(conf);
+	pshell_putc('\n');
+	if (conf != 'S' && conf != 's') {
+		pshell_println("System suspended.");
+		while (1);
 	}
+	
+	panic_shell(regs);
 	
 	for (;;) __asm__ __volatile__("hlt");
 }
@@ -191,9 +189,9 @@ void rudimentry_exception_logger(registers_t* regs) {
 
 void dump_registers(registers_t* regs) {
 	pshell_println("Register dump:");
-	pshell_print(" DS: "); pshell_print_hex(regs->ds); pshell_println("");
-	pshell_print(" ES: "); pshell_print_hex(regs->es); pshell_println("");
-	pshell_print(" FS: "); pshell_print_hex(regs->fs); pshell_println("");
+	pshell_print(" DS: "); pshell_print_hex(regs->ds);pshell_print(" | ");
+	pshell_print(" ES: "); pshell_print_hex(regs->es);pshell_print(" | ");
+	pshell_print(" FS: "); pshell_print_hex(regs->fs);pshell_print(" | ");
 	pshell_print(" GS: "); pshell_print_hex(regs->gs); pshell_println("");
 	pshell_print("ESI: "); pshell_print_hex(regs->esi); pshell_println("");
 	pshell_print("EDI: "); pshell_print_hex(regs->edi); pshell_println("");
@@ -204,7 +202,7 @@ void dump_registers(registers_t* regs) {
 	pshell_print("ECX: "); pshell_print_hex(regs->ecx); pshell_println("");
 	pshell_print("EDX: "); pshell_print_hex(regs->edx); pshell_println("");
 	pshell_println("------------------------------");
-	pshell_print(" int_num: "); pshell_print_dec(regs->int_num);  pshell_println("");
+	pshell_print(" int_num: "); pshell_print_dec(regs->int_num); pshell_print(" | ");
 	pshell_print("err_code: "); pshell_print_dec(regs->err_code); pshell_println("");
 	pshell_println("------------------------------");
 	pshell_print("    eip: "); pshell_print_hex(regs->eip); pshell_println("");
@@ -212,5 +210,4 @@ void dump_registers(registers_t* regs) {
 	pshell_print(" eflags: "); pshell_print_hex(regs->eflags); pshell_println("");
 	pshell_print("useresp: "); pshell_print_hex(regs->useresp); pshell_println("");
 	pshell_print("     ss: "); pshell_print_hex(regs->ss); pshell_println("");
-	pshell_print(" clarus: moof."); pshell_println("");
 }

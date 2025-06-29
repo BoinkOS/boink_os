@@ -55,10 +55,20 @@ int strcmp(const char* s1, const char* s2) {
 	return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
+int strncmp(const char *s1, const char *s2, size_t n) {
+	for (size_t i = 0; i < n; i++) {
+		if (s1[i] != s2[i])
+			return (unsigned char)s1[i] - (unsigned char)s2[i];
+		if (s1[i] == '\0')
+			return 0;
+	}
+	return 0;
+}
+
 int atoi(const char* str) {
 	int num = 0;
 	int i = 0;
-	bool is_negative = false;
+	bool is_negative = 0;
 	
 	if(str[i] == '-'){
 		is_negative = true;
@@ -100,4 +110,55 @@ uint32_t strlen_max(const char *str, uint32_t max) {
 		len++;
 	}
 	return len;
+}
+
+long strtol(const char *str, char **endptr, int base) {
+	long result = 0;
+	int negative = 0;
+
+	// skip whitespace
+	while (*str == ' ' || *str == '\t' || *str == '\n') str++;
+
+	// handle sign
+	if (*str == '-') {
+		negative = true;
+		str++;
+	} else if (*str == '+') {
+		str++;
+	}
+
+	// auto-detect base
+	if ((base == 0 || base == 16) &&
+	    str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+		str += 2;
+		base = 16;
+	} else if (base == 0 && str[0] == '0') {
+		base = 8;
+	} else if (base == 0) {
+		base = 10;
+	}
+
+	while (*str) {
+		char c = *str;
+		int digit;
+
+		if (c >= '0' && c <= '9')
+			digit = c - '0';
+		else if (c >= 'a' && c <= 'f')
+			digit = c - 'a' + 10;
+		else if (c >= 'A' && c <= 'F')
+			digit = c - 'A' + 10;
+		else
+			break;
+
+		if (digit >= base) break;
+
+		result = result * base + digit;
+		str++;
+	}
+
+	if (endptr)
+		*endptr = (char*)str;
+
+	return negative ? -result : result;
 }

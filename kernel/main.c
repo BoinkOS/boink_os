@@ -23,6 +23,10 @@ extern void ata_irq_handler(uint32_t irq_num);
 extern void user_entry();
 
 void kmain(void) {
+	*((char*)0xb8000) = 'H';  // quick hello in top left
+	while (1) {}
+	
+	
 	init_framebuffer();
 
 	console_init();
@@ -89,7 +93,7 @@ void kmain(void) {
 	console_set_background_color(0x9019ff);
 	console_print("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
 	console_set_color(0xc98fff);
-	console_print("~ where there is a shell, there is a way... ~");
+	console_print("\n~ where there is a shell, there is a way... ~");
 	console_set_background_color(0x000000);
 	console_set_color(0xFFFFFF);
 	console_println("\n");
@@ -139,6 +143,8 @@ void kmain(void) {
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
 	//glfs_prompt();
+	
+	test_paging(1);
 	
 	asm volatile (
 		"int $0x1"
