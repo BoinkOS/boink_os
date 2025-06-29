@@ -1,7 +1,7 @@
 #include "idt.h"
 #include "../llio.h"
 #include "../mem/paging.h"
-#include "../klib/console/console.h"
+#include "../klib/panicshell/panic_console.h"
 
 extern void isr0_handler(); 
 extern void isr1_handler(); 
@@ -118,9 +118,6 @@ void exception_common_c(registers_t* regs) {
 }
 
 void extensible_exception_handler(registers_t* regs) {
-	console_set_background_color(0xFF0000);
-	console_set_color(0xFFFFFF);
-
 	uint32_t int_num = regs->int_num;
 	uint32_t error_code = regs->err_code;
 
@@ -128,52 +125,63 @@ void extensible_exception_handler(registers_t* regs) {
 	if (int_num < MAX_EXCEPTION_HANDLERS && exception_handlers[int_num]) {
 		int result = exception_handlers[int_num](int_num, error_code);
 		if (result == 1) {
-			console_set_background_color(0x000000);
-			console_set_color(0xFFFFFF);
-			console_println("");
+			pshell_println(""); // replaces console_println
 			return;
 		}
 	}
 
-	console_println("");
-	console_println("!!! KERNEL PANIC !!!");
-	console_println("");
-	console_print("Unhandled exception: ");
-	console_print_dec(int_num);
-	console_print(" (");
-	console_print(error_names[int_num]);
-	console_print(")");
-	console_println("");
-	console_print("Error code: 0x");
-	console_print_hex(error_code);
-	console_println("");
+	pshell_init();
 
-	// dump registers for debugging
-	dump_registers(regs);
+	pshell_println("");
+	pshell_println("!!! KERNEL PANIC !!!");
+	pshell_println("");
 
-	console_println("The kernel is now in an unrecoverable state.");
+	pshell_print("Unhandled exception: ");
+	pshell_print_dec(int_num);
+	pshell_print(" (");
+	pshell_print(error_names[int_num]);
+	pshell_print(")");
+	pshell_println("");
+
+	pshell_print("Error code: 0x");
+	pshell_print_hex(error_code);
+	pshell_println("");
+
+	//dump_registers(regs);
+
+	//pshell_println("The kernel is now in an unrecoverable state.");
+	__asm__ __volatile__("sti");
+	char input[128];
+	while (1) {
+		pshell_print("moof> ");
+		pshell_input(input, sizeof(input));
+		pshell_print("ECHO: ");
+		pshell_print(input);
+		pshell_putc('\n');
+		pshell_putc('\n');
+	}
+	
 	for (;;) __asm__ __volatile__("hlt");
 }
 
 void rudimentry_exception_logger(registers_t* regs) {
-	console_set_background_color(0xFF0000);
-	console_set_color(0xFFFFFF);
+	pshell_init();
 
-	console_print("EXCEPTION: ");
-	console_print_dec(regs->int_num);
-	console_print(" - ");
-	console_print(error_names[regs->int_num]);
-	console_println("");
+	pshell_print("EXCEPTION: ");
+	pshell_print_dec(regs->int_num);
+	pshell_print(" - ");
+	pshell_print(error_names[regs->int_num]);
+	pshell_println("");
 
-	console_print("Error code: 0x");
-	console_print_hex(regs->err_code);
-	console_println("");
+	pshell_print("Error code: 0x");
+	pshell_print_hex(regs->err_code);
+	pshell_println("");
 
-	console_print("EIP: ");
-	console_print_hex(regs->eip);
-	console_print(" | CS: ");
-	console_print_hex(regs->cs);
-	console_println("");
+	pshell_print("EIP: ");
+	pshell_print_hex(regs->eip);
+	pshell_print(" | CS: ");
+	pshell_print_hex(regs->cs);
+	pshell_println("");
 
 	dump_registers(regs);
 
@@ -182,27 +190,27 @@ void rudimentry_exception_logger(registers_t* regs) {
 }
 
 void dump_registers(registers_t* regs) {
-	console_println("Register dump:");
-	console_print(" DS: "); console_print_hex(regs->ds); console_println("");
-	console_print(" ES: "); console_print_hex(regs->es); console_println("");
-	console_print(" FS: "); console_print_hex(regs->fs); console_println("");
-	console_print(" GS: "); console_print_hex(regs->gs); console_println("");
-	console_print("ESI: "); console_print_hex(regs->esi); console_println("");
-	console_print("EDI: "); console_print_hex(regs->edi); console_println("");
-	console_print("EBP: "); console_print_hex(regs->ebp); console_println("");
-	console_print("ESP: "); console_print_hex(regs->esp); console_println("");
-	console_print("EAX: "); console_print_hex(regs->eax); console_println("");
-	console_print("EBX: "); console_print_hex(regs->ebx); console_println("");
-	console_print("ECX: "); console_print_hex(regs->ecx); console_println("");
-	console_print("EDX: "); console_print_hex(regs->edx); console_println("");
-	console_println("------------------------------");
-	console_print(" int_num: "); console_print_dec(regs->int_num);  console_println("");
-	console_print("err_code: "); console_print_dec(regs->err_code); console_println("");
-	console_println("------------------------------");
-	console_print("    eip: "); console_print_hex(regs->eip); console_println("    ");
-	console_print("     cs: "); console_print_hex(regs->cs); console_println("     ");
-	console_print(" eflags: "); console_print_hex(regs->eflags); console_println(" ");
-	console_print("useresp: "); console_print_hex(regs->useresp); console_println("");
-	console_print("     ss: "); console_print_hex(regs->ss); console_println("     ");
-	console_print(" clarus: moof.");                         console_println("     ");
+	pshell_println("Register dump:");
+	pshell_print(" DS: "); pshell_print_hex(regs->ds); pshell_println("");
+	pshell_print(" ES: "); pshell_print_hex(regs->es); pshell_println("");
+	pshell_print(" FS: "); pshell_print_hex(regs->fs); pshell_println("");
+	pshell_print(" GS: "); pshell_print_hex(regs->gs); pshell_println("");
+	pshell_print("ESI: "); pshell_print_hex(regs->esi); pshell_println("");
+	pshell_print("EDI: "); pshell_print_hex(regs->edi); pshell_println("");
+	pshell_print("EBP: "); pshell_print_hex(regs->ebp); pshell_println("");
+	pshell_print("ESP: "); pshell_print_hex(regs->esp); pshell_println("");
+	pshell_print("EAX: "); pshell_print_hex(regs->eax); pshell_println("");
+	pshell_print("EBX: "); pshell_print_hex(regs->ebx); pshell_println("");
+	pshell_print("ECX: "); pshell_print_hex(regs->ecx); pshell_println("");
+	pshell_print("EDX: "); pshell_print_hex(regs->edx); pshell_println("");
+	pshell_println("------------------------------");
+	pshell_print(" int_num: "); pshell_print_dec(regs->int_num);  pshell_println("");
+	pshell_print("err_code: "); pshell_print_dec(regs->err_code); pshell_println("");
+	pshell_println("------------------------------");
+	pshell_print("    eip: "); pshell_print_hex(regs->eip); pshell_println("");
+	pshell_print("     cs: "); pshell_print_hex(regs->cs); pshell_println("");
+	pshell_print(" eflags: "); pshell_print_hex(regs->eflags); pshell_println("");
+	pshell_print("useresp: "); pshell_print_hex(regs->useresp); pshell_println("");
+	pshell_print("     ss: "); pshell_print_hex(regs->ss); pshell_println("");
+	pshell_print(" clarus: moof."); pshell_println("");
 }

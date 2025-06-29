@@ -93,3 +93,11 @@ void dump_hex_range(uint32_t from, uint32_t to) {
 		addr -= 16;
 	}
 }
+
+uint32_t strlen_max(const char *str, uint32_t max) {
+	uint32_t len = 0;
+	while (*str++ && len < max) {
+		len++;
+	}
+	return len;
+}

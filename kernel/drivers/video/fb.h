@@ -16,3 +16,4 @@ void init_framebuffer();
 uint32_t encode_color(uint8_t r, uint8_t g, uint8_t b);
 void put_pixel(uint32_t x, uint32_t y, uint32_t color);
 void draw_test_pattern();
+void copy_pixel(uint32_t sx, uint32_t sy, uint32_t dx, uint32_t dy);

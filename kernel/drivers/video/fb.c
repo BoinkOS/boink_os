@@ -29,6 +29,15 @@ void put_pixel(uint32_t x, uint32_t y, uint32_t color) {
 	*(uint32_t *)(fb + offset) = color;
 }
 
+void copy_pixel(uint32_t sx, uint32_t sy, uint32_t dx, uint32_t dy) {
+	uint8_t *fb = (uint8_t *)framebuffer;
+	uint32_t bytes_per_pixel = fb_bpp / 8;
+	uint32_t s_offset = sy * fb_pitch + sx * bytes_per_pixel;
+	uint32_t d_offset = dy * fb_pitch + dx * bytes_per_pixel;
+	
+	*(uint32_t *)(fb + d_offset) = *(uint32_t *)(fb + s_offset);
+}
+
 void draw_test_pattern() {
 	for (size_t y = 0; y < fb_height; ++y) {
 		for (size_t x = 0; x < fb_width; ++x) {

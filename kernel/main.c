@@ -87,9 +87,9 @@ void kmain(void) {
 	}
 	
 	console_set_background_color(0x9019ff);
-	console_println("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
+	console_print("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
 	console_set_color(0xc98fff);
-	console_println("~ where there is a shell, there is a way... ~");
+	console_print("~ where there is a shell, there is a way... ~");
 	console_set_background_color(0x000000);
 	console_set_color(0xFFFFFF);
 	console_println("\n");
@@ -138,12 +138,17 @@ void kmain(void) {
 
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	glfs_prompt();
-
-
+	//glfs_prompt();
 	
-
-	console_print("Enter echo shell? (y/n) ");
+	asm volatile (
+		"int $0x1"
+	);
+	
+	while (1) {};
+	
+	
+	
+	/*console_print("Enter echo shell? (y/n) ");
 	conf = read_key();
 	console_set_color(0x9019ff);
 	console_putc(conf);
@@ -170,5 +175,5 @@ void kmain(void) {
 		console_print(input);
 		console_putc('\n');
 		console_putc('\n');
-	}
+	}*/
 }
