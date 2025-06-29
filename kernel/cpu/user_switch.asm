@@ -1,22 +1,24 @@
+[bits 32]
+
 ; user_switch.asm
 global switch_to_user_mode
 switch_to_user_mode:
 	cli
-
-	; get user_stack and entry point before touching stack
-	mov ecx, [esp + 4]     ; user_entry
-	mov eax, [esp + 8]     ; user_stack
-
-	mov ax, 0x23           ; user data selector
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-
-	push 0x23              ; ss
-	push eax               ; esp
+	
+	; get entry + stack ptr safely
+	mov ecx, [esp + 4] ; entry
+	mov eax, [esp + 8] ; stack
+	
+	mov dx, 0x23
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+	
+	push 0x23
+	push eax
 	pushf
-	push 0x1B              ; cs
-	push ecx               ; eip
-
+	push 0x1B
+	push ecx
+	
 	iret

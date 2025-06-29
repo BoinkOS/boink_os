@@ -11,7 +11,7 @@ void* elf_load(void* elf_data) {
 	Elf32_Ehdr* hdr = (Elf32_Ehdr*)elf_data;
 
 	if (hdr->e_ident[0] != 0x7F || hdr->e_ident[1] != 'E' ||
-	    hdr->e_ident[2] != 'L' || hdr->e_ident[3] != 'F') {
+		hdr->e_ident[2] != 'L' || hdr->e_ident[3] != 'F') {
 		console_println("not a valid ELF file.");
 		return NULL;
 	}

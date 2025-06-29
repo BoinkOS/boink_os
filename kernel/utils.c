@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "klib/uptime/uptime.h"
 #include "klib/input/keyboard/keyboard.h"
+#include "klib/console/console.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -71,4 +72,24 @@ int atoi(const char* str) {
 	
 	if(is_negative) num = -1 * num;
 	return num;
+}
+
+void dump_hex_range(uint32_t from, uint32_t to) {
+	console_println("dumping user stack:");
+
+	for (uint32_t addr = from; addr < to; addr += 16) {
+		console_print_hex(addr);
+		console_putc(':');
+		console_putc(' ');
+
+		for (int i = 0; i < 16; i++) {
+			uint8_t byte = *((uint8_t*)addr);
+			console_print_hex(byte);
+			console_putc(' ');
+			addr++;
+		}
+
+		console_putc('\n');
+		addr -= 16;
+	}
 }

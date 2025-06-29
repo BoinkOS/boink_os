@@ -10,8 +10,9 @@
 #include "../execs/elf/elf.h" 
 #include "../cpu/user_switch.h"
 
-glfs_file_entry glfs_files[MAX_FILES];
 int glfs_file_count = 0;
+
+glfs_file_entry glfs_files[MAX_FILES];
 
 uint8_t end_marker[] = "__END__\n";
 #define GLFS_DIR_BUFFER_VADDR 0xC1000000
@@ -243,7 +244,8 @@ void glfs_prompt() {
 	if (!strcmp(ext, "bin")) {
 		exec_bin(filename);
 	} else if (!strcmp(ext, "elf")) {
-		exec_elf(filename);
+		const char* args[] = { "program.elf", "hello", "world", NULL };
+		exec_elf(f-1, 3, args);
 	} else {
 		console_set_background_color(0xff0000);
 		console_print("Unknown file type: .");
@@ -253,43 +255,92 @@ void glfs_prompt() {
 	}
 }
 
-
-void exec_elf(const char* filename) {
+void exec_elf(int findex, int argc, const char** argv) {
 	glfs_init_buffers();
 	glfs_map_temp_sector_buffer();
 	glfs_read_directory();
 
-	for (int i = 0; i < glfs_file_count; i++) {
-		if (strcmp(glfs_files[i].filename, filename) == 0) {
-			glfs_file_entry* file = &glfs_files[i];
+	glfs_file_entry* file = &glfs_files[findex];
 
-			console_print("Loading ELF file: ");
-			console_println(file->filename);
+	console_print("Loading ELF file: ");
+	console_println(file->filename);
 
-			uint8_t* elf_buf = map_temp_elf_buffer(file->size);
-			glfs_load_file(file, elf_buf);
+	uint8_t* elf_buf = map_temp_elf_buffer(file->size);
+	glfs_load_file(file, elf_buf);
 
-			void* entry_point = elf_load(elf_buf);
+	void* entry_point = elf_load(elf_buf);
 
-			if (!entry_point) {
-				console_println("ELF load failed.");
-				return;
-			}
+	if (!entry_point) {
+		console_println("ELF load failed.");
+		return;
+	}
+	
+	uint32_t user_stack_top = 0x600000;
+	size_t arg_data_size = 0;
 
-			uint32_t user_stack_base = 0x500000;
-			for (int i = 0; i < 4; i++) {
-				map_page(user_stack_base - i * 0x1000, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
-				flush_tlb_single(user_stack_base - i * 0x1000);
-			}
-
-			uint32_t user_stack = user_stack_base + 0x4000 - 4;
-
-			console_println("Switching to user mode...");
-			console_println("---------------------------------------------");
-			switch_to_user_mode((uint32_t)entry_point, user_stack);
-			return;
-		}
+	for (int i = 0; i < argc; i++) {
+		arg_data_size += strlen(argv[i]) + 1;
 	}
 
-	console_println("ELF file not found.");
+	size_t argv_array_size = (argc + 1) * sizeof(char*);
+	size_t total_stack_needed = arg_data_size + argv_array_size + sizeof(char**) + sizeof(int);
+	size_t total_mapped_stack = ((total_stack_needed + 0x10000 + 0xFFF) & ~0xFFF); // 64kb buffer
+	uint32_t stack_bottom = user_stack_top - total_mapped_stack;
+
+	// map the stack pages
+	for (uint32_t addr = stack_bottom; addr < user_stack_top; addr += 0x1000) {
+		map_page(addr, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
+		flush_tlb_single(addr);
+		memset((void*)addr, 0, 0x1000); 
+	}
+
+	uint32_t user_stack = user_stack_top;
+
+	char* arg_strings[argc];
+
+	// copy strings
+	for (int i = argc - 1; i >= 0; i--) {
+		size_t len = strlen(argv[i]) + 1;
+		user_stack -= len;
+		mem_cpy((void*)user_stack, argv[i], len);
+		arg_strings[i] = (char*)user_stack;
+	}
+
+	// write argv[] array
+	user_stack -= (argc + 1) * sizeof(char*);
+	char* argv_array_addr = (char*)user_stack;
+
+	for (int i = 0; i < argc; i++) {
+		uint32_t ptr = (uint32_t)arg_strings[i];
+		mem_cpy((void*)(user_stack + i * 4), &ptr, sizeof(uint32_t));
+	}
+	uint32_t null_ptr = 0;
+	mem_cpy((void*)(user_stack + argc * 4), &null_ptr, sizeof(uint32_t));
+
+	user_stack -= sizeof(char**);
+	mem_cpy((void*)user_stack, &argv_array_addr, sizeof(char**));
+	
+	user_stack -= sizeof(int);
+	mem_cpy((void*)user_stack, &argc, sizeof(int));
+	user_stack &= ~0xF;
+	
+	console_print("entry point: 0x");
+	console_print_hex((uint32_t)entry_point);
+	console_print("\nstack ptr: 0x");
+	console_print_hex(user_stack);
+	console_putc('\n');
+
+	for (int i = 0; i < argc; i++) {
+		console_print("arg ");
+		console_print_dec(i);
+		console_print(": ");
+		console_print_hex((uint32_t)arg_strings[i]);
+		console_print(" -> ");
+		console_println(arg_strings[i]);
+	}
+	
+	console_println("Switching to user mode...");
+	console_println("---------------------------------------------");
+	switch_to_user_mode((uint32_t)entry_point, user_stack);
+	return;
 }

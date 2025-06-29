@@ -23,4 +23,4 @@ void* glfs_map_user_program(uint32_t size);
 void exec_bin(const char* filename);
 void* glfs_map_and_load_file(const char* filename);
 void glfs_prompt();
-void exec_elf(const char* filename);
+void exec_elf(int findex, int argc, const char** argv);
