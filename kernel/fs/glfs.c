@@ -180,8 +180,8 @@ void exec_bin(const char* filename) {
 	uint32_t user_stack_base = 0x500000;
 
 	for (int i = 0; i < USER_BIN_PAGES; i++) {
-	    map_page(user_stack_base - i * 0x1000, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
-	    flush_tlb_single(user_stack_base - i * 0x1000);
+		map_page(user_stack_base - i * 0x1000, alloc_frame(), PAGE_PRESENT | PAGE_RW | PAGE_USER);
+		flush_tlb_single(user_stack_base - i * 0x1000);
 	}
 
 	uint32_t user_stack = user_stack_base + 0x4000 - 4;

@@ -114,7 +114,7 @@ void free_frame(uint32_t addr) {
 }
 
 uint32_t get_free_memory() {
-    uint32_t free_frames = 0;
+	uint32_t free_frames = 0;
 
 	for (uint32_t i = 0; i < TOTAL_FRAMES; i++) {
 		uint32_t byte = frame_bitmap[BITMAP_BYTE(i)];
