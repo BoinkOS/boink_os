@@ -22,17 +22,16 @@ extern void ata_irq_handler(uint32_t irq_num);
 #include "cpu/tss.h"
 extern void user_entry();
 
+extern void load_gdt();
+
+__attribute__((section(".text.boot")))
 void kmain(void) {
-	*((char*)0xb8000) = 'H';  // quick hello in top left
-	while (1) {}
-	
-	
 	init_framebuffer();
 
 	console_init();
 
 	console_set_color(0x888888);
-	console_println("vesa mode entered, gdt loaded, kernel loaded, protected mode entered prior to jumping to kernel.\n");
+	console_println("presumed as having been booted from Boink Bootloader.\n");
 	frame_allocator_init();
 	paging_init();
 	asm volatile ("fninit");
@@ -144,7 +143,7 @@ void kmain(void) {
 	
 	//glfs_prompt();
 	
-	test_paging(1);
+	//test_paging(1);
 	
 	asm volatile (
 		"int $0x1"

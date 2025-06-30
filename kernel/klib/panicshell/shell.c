@@ -3,6 +3,11 @@
 #include "../../interrupts/idt.h"
 #include "../../utils.h"
 
+void cmd_help();
+void cmd_backtrace(uint32_t ebp);
+void cmd_memdump(const char* arg1, const char* arg2);
+void cmd_whereami(registers_t* regs);
+
 void panic_shell(registers_t* regs) {
 	pshell_println("~ Interactive Panic Debug Shell (use `help` to see commands) ~");
 	
@@ -10,19 +15,24 @@ void panic_shell(registers_t* regs) {
 	while (1) {
 		pshell_print("pshell> ");
 		pshell_input(input, sizeof(input));
-		if (strcmp(input, "help") == 0) {
+		
+		char* cmd = strtok(input, " ");
+		char* arg1 = strtok(NULL, " ");
+		char* arg2 = strtok(NULL, " ");
+		
+		if (!cmd) continue;
+		
+		pshell_set_title(input);
+		
+		if (strcmp(cmd, "help") == 0) {
 			cmd_help();
-		} else if (strcmp(input, "regs") == 0) {
+		} else if (strcmp(cmd, "regs") == 0) {
 			dump_registers(regs);
-		} else if (strcmp(input, "bt") == 0) {
+		} else if (strcmp(cmd, "bt") == 0) {
 			cmd_backtrace(regs->ebp);
-		} else if (strncmp(input, "memdump", 7) == 0) {
-			uint32_t addr, len;
-			if (parse_memdump_args(input, &addr, &len)) {
-				cmd_memdump(addr, len);
-			} else {
-				pshell_println("usage: memdump <addr> [len]");
-			}
+		} else if (strcmp(cmd, "memdump") == 0) {
+			if (!arg1 || !arg2) pshell_println("usage: memdump <start> <end>");
+			else cmd_memdump(arg1, arg2);
 		} else if (strcmp(input, "whereami") == 0) {
 			cmd_whereami(regs);
 		} else {
@@ -31,6 +41,7 @@ void panic_shell(registers_t* regs) {
 		}
 		pshell_putc('\n');
 	}
+	
 }
 
 void cmd_backtrace(uint32_t ebp) {
@@ -45,71 +56,51 @@ void cmd_backtrace(uint32_t ebp) {
 
 void cmd_help() {
 	pshell_println("Commands:");
-	pshell_println("  regs        - dump CPU registers at panic time");
-	pshell_println("  bt          - show call stack");
+	pshell_println("  regs                   - dump CPU registers at panic time");
+	pshell_println("  bt                     - show call stack");
+	pshell_println("  memdump <s> <e>        - dump memory from 0x<s> to 0x<e>");
+	pshell_println("  whereami               - dump eip and cs");
 }
 
-void cmd_memdump(uint32_t addr, uint32_t len) {
-	if (addr < 0x1000 || addr > 0xC0000000) {
-		pshell_println("address in invalid range.");
+static uint32_t parse_hex(const char* str) {
+	uint32_t result = 0;
+
+	// skip "0x" or "0X" if present
+	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+		str += 2;
+	}
+
+	while (*str) {
+		result <<= 4;
+
+		if (*str >= '0' && *str <= '9')
+			result |= (*str - '0');
+		else if (*str >= 'A' && *str <= 'F')
+			result |= (*str - 'A' + 10);
+		else if (*str >= 'a' && *str <= 'f')
+			result |= (*str - 'a' + 10);
+		else
+			break; // invalid char
+
+		str++;
+	}
+
+	return result;
+}
+
+void cmd_memdump(const char* arg1, const char* arg2) {
+	uint32_t start = parse_hex(arg1);
+	uint32_t end = parse_hex(arg2);
+
+	if (start >= end || end - start > 0x1000) {
+		pshell_println("invalid range or too large (max 0x1000)");
 		return;
 	}
-	
-	const uint8_t* mem = (const uint8_t*)addr;
 
-	for (uint32_t i = 0; i < len; i += 16) {
-		// address label
-		pshell_print("0x");
-		pshell_print_hex(addr + i);
-		pshell_print(":  ");
-
-		// hex values
-		for (uint32_t j = 0; j < 16 && i + j < len; ++j) {
-			uint8_t byte = mem[i + j];
-			pshell_print_hex(byte);
-			pshell_print(" ");
-		}
-
-		// spacing
-		pshell_print(" ");
-
-		// ascii representation
-		for (uint32_t j = 0; j < 16 && i + j < len; ++j) {
-			uint8_t byte = mem[i + j];
-			if (byte >= 32 && byte <= 126)
-				pshell_putc(byte);
-			else
-				pshell_putc('.');
-		}
-
-		pshell_putc('\n');
-	}
+	dump_hex_range_to_pshell(start, end);
 }
 
 void cmd_whereami(registers_t* regs) {
 	pshell_print("EIP: 0x"); pshell_print_hex(regs->eip); pshell_putc('\n');
 	pshell_print(" CS: 0x"); pshell_print_hex(regs->cs);  pshell_putc('\n');
 }
-
-
-int parse_memdump_args(const char* input, uint32_t* addr, uint32_t* len) {
-	// input format: "memdump 0xADDR LEN"
-	char* ptr = (char*)input;
-
-	// skip past command name
-	while (*ptr && *ptr != ' ') ptr++;
-	if (!*ptr) return 0;
-	ptr++;
-
-	// parse addr
-	*addr = strtol(ptr, &ptr, 0);
-	if (!*ptr) {
-		*len = 16; // default length
-		return 1;
-	}
-
-	// parse optional len
-	*len = strtol(ptr, NULL, 0);
-	return 0;
-}
-

@@ -3,6 +3,7 @@
 #include "klib/uptime/uptime.h"
 #include "klib/input/keyboard/keyboard.h"
 #include "klib/console/console.h"
+#include "klib/panicshell/panic_console.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -85,8 +86,6 @@ int atoi(const char* str) {
 }
 
 void dump_hex_range(uint32_t from, uint32_t to) {
-	console_println("dumping user stack:");
-
 	for (uint32_t addr = from; addr < to; addr += 16) {
 		console_print_hex(addr);
 		console_putc(':');
@@ -100,6 +99,24 @@ void dump_hex_range(uint32_t from, uint32_t to) {
 		}
 
 		console_putc('\n');
+		addr -= 16;
+	}
+}
+
+void dump_hex_range_to_pshell(uint32_t from, uint32_t to) {
+	for (uint32_t addr = from; addr < to; addr += 16) {
+		pshell_print_hex(addr);
+		pshell_putc(':');
+		pshell_putc(' ');
+
+		for (int i = 0; i < 16; i++) {
+			uint8_t byte = *((uint8_t*)addr);
+			pshell_print_hex(byte);
+			pshell_putc(' ');
+			addr++;
+		}
+
+		pshell_putc('\n');
 		addr -= 16;
 	}
 }
@@ -161,4 +178,46 @@ long strtol(const char *str, char **endptr, int base) {
 		*endptr = (char*)str;
 
 	return negative ? -result : result;
+}
+
+char* strtok(char* str, const char* delim) {
+	static char* next = 0;
+
+	if (str) {
+		next = str;
+	}
+
+	if (!next) return 0;
+
+	// skip any leading delimiters
+	while (*next && strchr(delim, *next)) {
+		next++;
+	}
+
+	if (!*next) return 0;
+
+	char* token_start = next;
+
+	// find end of token
+	while (*next && !strchr(delim, *next)) {
+		next++;
+	}
+
+	if (*next) {
+		*next = '\0';
+		next++; // move past null
+	} else {
+		next = 0; // no more tokens
+	}
+
+	return token_start;
+}
+
+char* strchr(const char* str, int c) {
+	while (*str) {
+		if (*str == (char)c)
+			return (char*)str;
+		str++;
+	}
+	return 0;
 }

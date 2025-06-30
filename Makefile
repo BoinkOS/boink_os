@@ -1,6 +1,4 @@
 # === Filenames ===
-BOOTLOADER_SRC := boot/bootloader.asm
-BOOTLOADER_BIN := build/bootloader.bin
 
 KERNEL_SRCS := $(shell find kernel -name '*.c')
 KERNEL_OBJS := $(patsubst kernel/%.c, build/%.o, $(KERNEL_SRCS))
@@ -16,8 +14,8 @@ USER_SWITCH_OBJ := build/kernel/cpu/user_switch.o
 SYSC_ENTRY_SRC := kernel/sys/syscall_entry.asm
 SYSC_ENTRY_OBJ := build/kernel/sys/syscall_entry.o
 
-GDT_SRC := boot/gdt.asm
-GDT_OBJ := build/boot/gdt.o
+GDT_SRC := gdt/gdt.asm
+GDT_OBJ := build/gdt/gdt.o
 
 # put main.o first when linking
 KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
@@ -28,7 +26,7 @@ KERNEL_OBJS_ORDERED := $(filter build/main.o, $(KERNEL_OBJS)) \
 KERNEL_BIN := build/kernel.bin
 LINKER_SCRIPT := link.ld
 
-IMAGE := os-image.img
+DISKNAME := boinkos
 
 # === Tools ===
 CC := i686-elf-gcc
@@ -45,8 +43,6 @@ build:
 	mkdir -p build
 
 # assemble bootloader
-$(BOOTLOADER_BIN): $(BOOTLOADER_SRC) | build
-	nasm -f bin $(BOOTLOADER_SRC) -o $(BOOTLOADER_BIN)
 
 # compile C files into object files under /build
 build/%.o: kernel/%.c | build
@@ -81,14 +77,13 @@ $(TSS_OBJ): $(TSS_SRC) | build
 $(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(EVEC_OBJ) $(LINKER_SCRIPT)
 	$(LD) $(LD_FLAGS) $(KERNEL_OBJS_ORDERED) -o $(KERNEL_BIN)
 
-# build bootable image
-$(IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)
-	dd if=/dev/zero of=$(IMAGE) bs=512 count=2880
-	dd if=$(BOOTLOADER_BIN) of=$(IMAGE) conv=notrunc
-	dd if=$(KERNEL_BIN) of=$(IMAGE) bs=512 seek=1 conv=notrunc
+disk: $(KERNEL_BIN)
+	glfs-mkfs $(DISKNAME).glfs
+	glfs-add $(DISKNAME).glfs $(KERNEL_BIN) boink.bin
+	glfs-ls $(DISKNAME).glfs
 
-run: $(IMAGE)
-	qemu-system-i386 -fda $(IMAGE) -hdb testdisk.glfs -vga std
+run: disk
+	qemu-system-i386 -fda boinkboot.img -hdb $(DISKNAME).glfs -vga std
 
 clean:
-	rm -rf build *.img
+	rm -rf build $(DISKNAME).glfs

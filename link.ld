@@ -1,22 +1,23 @@
 ENTRY(kmain)
 
 SECTIONS {
-    . = 0x00100000;
+	. = 0x00100000;
 
-    .text : {
-        *(.text)
-    }
+	.text : {
+		KEEP(*(.text.boot))
+		*(.text)
+	}
 
-    .rodata : {
-        *(.rodata*)
-    }
+	.rodata : {
+		*(.rodata*)
+	}
 
-    .data : {
-        *(.data)
-    }
+	.data : {
+		*(.data)
+	}
 
-    .bss : {
-        *(.bss)
-        *(COMMON)
-    }
+	.bss : {
+		*(.bss)
+		*(COMMON)
+	}
 }
