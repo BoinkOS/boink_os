@@ -208,6 +208,42 @@ void console_input(char *buf, uint32_t max_len) {
 	cursor_enabled = 0;
 }
 
+void console_input_nonl(char *buf, uint32_t max_len) {
+	cursor_enabled = 1;
+	uint32_t idx = 0;
+	uint32_t last_loop_tick = 0;
+	while (1) {
+		uint32_t now = uptime_ticks();
+
+		if (now != last_loop_tick) {
+			last_loop_tick = now;
+			console_update();
+
+			if (kbd_has_char()) {
+				char c = kbd_read_char();
+				if (c == '\0') {
+					continue;
+				} else if  (c == '\n') {
+					buf[idx] = '\0';
+					cursor_drawn = 0;
+					erase_cursor();
+					return;
+				} else if (c == '\b') {
+					if (idx > 0) {
+						idx--;
+						console_putc('\b');
+					}
+				} else if (idx < max_len - 1) {
+					console_putc(c);
+					buf[idx++] = c;
+				}
+			}
+		}
+	}
+
+	cursor_enabled = 0;
+}
+
 
 void console_set_color(uint32_t color) {
 	text_color = color;
@@ -279,4 +315,12 @@ void console_update() {
 			draw_cursor();
 		}
 	}
+}
+
+uint32_t console_get_max_cols() {
+	return max_cols;
+}
+
+uint32_t console_get_max_rows() {
+	return max_rows;
 }

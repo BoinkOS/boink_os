@@ -59,8 +59,6 @@ void kmain(void) {
 	
 	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
-	
-	//enable_frame_debug();
 
 	kscratch_init();
 	
@@ -141,14 +139,7 @@ void kmain(void) {
 
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	//glfs_prompt();
-	
-	//test_paging(1);
-	
-	asm volatile (
-		"int $0x1"
-	);
-	
+	glfs_prompt();
 	while (1) {};
 	
 	

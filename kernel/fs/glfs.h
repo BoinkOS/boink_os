@@ -24,3 +24,4 @@ void exec_bin(const char* filename);
 void* glfs_map_and_load_file(const char* filename);
 void glfs_prompt();
 void exec_elf(int findex, int argc, const char** argv);
+void* glfs_load_txt_file(int findex, uint32_t dest_addr);

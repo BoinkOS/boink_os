@@ -12,6 +12,7 @@ void console_println(const char *str);
 void console_print_dec(uint32_t i);
 void console_print_hex(uint32_t i);
 void console_input(char *buf, uint32_t max_len);
+void console_input_nonl(char *buf, uint32_t max_len);
 
 void console_set_color(uint32_t color);
 void console_set_cursor(uint32_t x, uint32_t y);
@@ -23,3 +24,6 @@ void draw_cursor();
 void erase_cursor();
 void console_update();
 void console_set_cursor_to_end();
+
+uint32_t console_get_max_cols();
+uint32_t console_get_max_rows();

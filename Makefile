@@ -80,6 +80,7 @@ $(KERNEL_BIN): $(KERNEL_OBJS_ORDERED) $(IVEC_OBJ) $(EVEC_OBJ) $(LINKER_SCRIPT)
 disk: $(KERNEL_BIN)
 	glfs-mkfs $(DISKNAME).glfs
 	glfs-add $(DISKNAME).glfs $(KERNEL_BIN) boink.bin
+	glfs-add $(DISKNAME).glfs x.txt lipsum.txt
 	glfs-ls $(DISKNAME).glfs
 
 run: disk
