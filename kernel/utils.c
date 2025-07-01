@@ -221,3 +221,20 @@ char* strchr(const char* str, int c) {
 	}
 	return 0;
 }
+
+char* strcat(char* dest, const char* src) {
+	char* original = dest;
+
+	while (*dest != '\0') {
+		dest++;
+	}
+	
+	while (*src != '\0') {
+		*dest = *src;
+		dest++;
+		src++;
+	}
+
+	*dest = '\0';
+	return original;
+}

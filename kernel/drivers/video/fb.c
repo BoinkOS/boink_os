@@ -4,10 +4,10 @@
 
 uint32_t fb_addr = 0;
 uint32_t *framebuffer = 0;
-uint16_t fb_pitch = 2560;
-uint16_t fb_width = 640;
-uint16_t fb_height = 480;
-uint8_t fb_bpp = 32;
+uint32_t fb_pitch = 0;
+uint32_t fb_width = 1024;
+uint32_t fb_height = 768;
+uint16_t fb_bpp = 32;
 
 void init_framebuffer() {
 	fb_addr = *FRAMEBUFFER_ADDRESS_PTR;

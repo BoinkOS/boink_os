@@ -42,11 +42,8 @@ void frame_allocator_init() {
 		frame_bitmap[i] = 0;
 	}
 
-	// reserve first megabyte (bootloader, kernel, paging, misc)
-	reserve_region(0x00000000, 0x00200000);
-
-	// reserve paging structures (1MB + 512KB)
-	reserve_region(0x00200000, 0x00080000);
+	// reserve 16 megabytes (bootloader, kernel, paging, misc)
+	reserve_region(0x00000000, 0x1000000);
 
 	// reserve framebuffer
 	uint32_t fb_addr = *FRAMEBUFFER_ADDRESS_PTR;

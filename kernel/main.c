@@ -87,6 +87,8 @@ void kmain(void) {
 		while (1);
 	}
 	
+	disable_frame_debug();
+	
 	console_set_background_color(0x9019ff);
 	console_print("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
 	console_set_color(0xc98fff);
@@ -140,6 +142,7 @@ void kmain(void) {
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
 	glfs_prompt();
+	
 	while (1) {};
 	
 	

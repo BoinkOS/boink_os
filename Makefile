@@ -81,9 +81,13 @@ disk: $(KERNEL_BIN)
 	glfs-mkfs $(DISKNAME).glfs
 	glfs-add $(DISKNAME).glfs $(KERNEL_BIN) boink.bin
 	glfs-add $(DISKNAME).glfs x.txt lipsum.txt
+	glfs-add $(DISKNAME).glfs x.bmp image.bmp
 	glfs-ls $(DISKNAME).glfs
 
 run: disk
+	qemu-system-i386 -fda boinkboot.img -hdb $(DISKNAME).glfs -vga std
+	
+runnc:
 	qemu-system-i386 -fda boinkboot.img -hdb $(DISKNAME).glfs -vga std
 
 clean:
