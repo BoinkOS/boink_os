@@ -9,7 +9,7 @@
 #include "glfs.h"
 #include "../execs/elf/elf.h" 
 #include "../cpu/user_switch.h"
-#include "../execs/txt/viewer.h"
+#include "../execs/mess/mess.h"
 #include "../execs/squint/squint.h"
 
 int glfs_file_count = 0;
