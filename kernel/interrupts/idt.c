@@ -133,7 +133,7 @@ void extensible_exception_handler(registers_t* regs) {
 
 	pshell_init();
 	
-	pshell_print("Unhandled exception: ");
+	pshell_print("Uh-oh spaghettio, unhandled exception: ");
 	pshell_print_dec(int_num);
 	pshell_print(" (");
 	pshell_print(error_names[int_num]);
