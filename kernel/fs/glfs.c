@@ -411,11 +411,14 @@ void* glfs_load_file_to_address(int findex, uint32_t dest_addr) {
 
 	uint32_t pages_needed = (file->size + 0xFFF) / 0x1000;
 
+	disable_frame_debug();
 	for (uint32_t j = 0; j < pages_needed; j++) {
 		uint32_t phys = alloc_frame();
 		map_page(dest_addr + j * 0x1000, phys, PAGE_PRESENT | PAGE_RW | PAGE_KERNEL);
 		flush_tlb_single(dest_addr + j * 0x1000);
 	}
+
+	enable_frame_debug();
 
 	uint8_t* buf = (uint8_t*)dest_addr;
 	glfs_load_file(file, buf);
