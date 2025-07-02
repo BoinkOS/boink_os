@@ -22,8 +22,14 @@ extern void ata_irq_handler(uint32_t irq_num);
 #include "sys/syscall.h"
 #include "cpu/tss.h"
 extern void user_entry();
-
 extern void load_gdt();
+
+
+// stuff for shell
+#include "execs/mess/mess.h"
+
+
+
 
 __attribute__((section(".text.boot")))
 void kmain(void) {
@@ -133,8 +139,9 @@ void kmain(void) {
 	
 	
 	
-	shell_add(glfs_list_files, "glfs-list", "glfs-list", "List all files on GLFS disk", 0);
-	shell_add(glfs_prompt, "glfs-prompt", "glfs-prompt", "GLFS auto-loader", 0);
+	shell_add(glfs_list_files_shell, "ls", "ls", "List all files on GLFS disk", 0);
+	shell_add(glfs_prompt, "autorun", "autorun", "GLFS auto-loader", 0);
+	shell_add(mess_shell, "mess", "mess <filename>", "Open a text file in mess", 1);
 	
 	
 	

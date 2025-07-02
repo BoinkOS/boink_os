@@ -6,6 +6,8 @@
 
 #define MAX_MATCHES 128
 
+void mess_shell(int argc, char** argv);
+
 void mess(int findex, const char *fname);
 void print_status_line(const char *str);
 void print_file_contents_at_offset();

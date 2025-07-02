@@ -14,6 +14,18 @@ static uint32_t match_indices[MAX_MATCHES];
 static uint32_t match_count = 0;
 static uint32_t search_term_len = 0;
 
+void mess_shell(int argc, char** argv) {
+	char* fname = argv[1];
+	int findex = glfs_find_file_index(fname);
+	
+	if (findex < 0) {
+		console_println("File not found.");
+		return;
+	}
+	
+	mess(findex, fname);
+}
+
 void mess(int findex, const char *fname) {
 	available_cols = console_get_max_cols();
 	available_rows = console_get_max_rows() - 1;
