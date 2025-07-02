@@ -67,4 +67,6 @@ void shutdown_cmd(int argc, char** argv) {
 	pbout(0xA1, 0xFF);	
 	
 	draw_message();
+	
+	for (;;) asm volatile("hlt");
 }
