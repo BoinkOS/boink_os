@@ -129,6 +129,10 @@ void glfs_list_files(int should_number) {
 	console_println("-------------------");
 }
 
+void glfs_list_files_shell(int argc, char** argv) {
+	glfs_list_files(1);
+}
+
 void glfs_load_file(glfs_file_entry* file, uint8_t* load_address) {
 	uint32_t sector = file->start_sector;
 	uint32_t remaining = file->size;
@@ -210,7 +214,7 @@ void exec_bin(const char* filename) {
 	switch_to_user_mode((uint32_t)entry_point, user_stack);
 }
 
-void glfs_prompt() {
+void glfs_prompt(int argc, char** argv) {
 	glfs_list_files(1);
 	console_print("What file would you like to load? ");
 
@@ -375,4 +379,15 @@ void* glfs_load_file_to_address(int findex, uint32_t dest_addr) {
 
 	console_println("File loaded to memory.");
 	return buf;
+}
+
+
+int glfs_find_file_index(const char* filename) {
+	for (int i = 0; i < glfs_file_count; i++) {
+		if (strcmp(glfs_files[i].filename, filename) == 0) {
+			return i;
+		}
+	}
+	
+	return -1;
 }

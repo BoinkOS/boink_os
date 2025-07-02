@@ -131,6 +131,13 @@ void kmain(void) {
 		while (1);
 	}
 	
+	
+	
+	shell_add(glfs_list_files, "glfs-list", "glfs-list", "List all files on GLFS disk", 0);
+	shell_add(glfs_prompt, "glfs-prompt", "glfs-prompt", "GLFS auto-loader", 0);
+	
+	
+	
 	shell_init();
 	
 	while (1) {};
