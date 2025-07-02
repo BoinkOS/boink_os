@@ -2,6 +2,7 @@
 #include "shell.h"
 #include "../../utils.h"
 #include "../../cpu/user_switch.h"
+#include "../power/power.h"
 #include <stddef.h>
 
 
@@ -15,6 +16,7 @@ void shell_init() {
 	console_println("\n");
 	
 	shell_add(help_cmd, "help", "help", "Show this command list", 0, 0);
+	shell_add(shutdown_cmd, "shutdown", "shutdown", "Shut down BoinkOS", 0, 0);
 
 	console_set_color(0x9019ff);
 	console_println("\n\nBoinkOS Kernel Shell");
@@ -70,6 +72,11 @@ void shell_start() {
 			console_println(cmd_name);
 			console_set_color(0xFFFFFF);
 		}
+
+		if (is_shutting_down) {
+			break;
+		}
+		
 		console_putc('\n');
 	}
 }
