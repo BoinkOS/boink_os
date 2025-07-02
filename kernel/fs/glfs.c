@@ -16,6 +16,8 @@ int glfs_file_count = 0;
 
 glfs_file_entry glfs_files[MAX_FILES];
 
+KernelContext kernel_ctx;
+
 uint8_t end_marker[] = "__END__\n";
 #define GLFS_DIR_BUFFER_VADDR 0xC1000000
 #define GLFS_DIR_BUFFER_PAGES 2 // enough for 1024 entries = 20k
@@ -175,6 +177,7 @@ void* glfs_map_and_load_file(const char* filename) {
 }
 
 void exec_bin(const char* filename) {
+	asm volatile("mov %%esp, %0" : "=r"(kernel_ctx.esp));
 	glfs_init_buffers();
 	glfs_map_temp_sector_buffer();
 	glfs_read_directory();
@@ -278,6 +281,8 @@ void glfs_prompt(int argc, char** argv) {
 }
 
 void exec_elf(int findex, int argc, const char** argv) {
+	asm volatile("mov %%esp, %0" : "=r"(kernel_ctx.esp));
+	
 	glfs_init_buffers();
 	glfs_map_temp_sector_buffer();
 	glfs_read_directory();
@@ -374,9 +379,7 @@ void exec_elf(int findex, int argc, const char** argv) {
 	
 	console_println("Switching to user mode...");
 	console_println("---------------------------------------------");
-	
 	switch_to_user_mode((uint32_t)entry_point, user_stack);
-	return;
 }
 
 void glfs_exec_elf_shell(int argc, char** argv) {

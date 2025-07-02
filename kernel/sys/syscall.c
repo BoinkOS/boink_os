@@ -1,6 +1,20 @@
 // syscall.c
 #include "syscall.h"
 #include "../klib/console/console.h"
+#include "../cpu/user_switch.h"
+#include "../utils.h"
+
+__attribute__((noreturn))
+void syscall_exit_trampoline(uint32_t esp, void* ret_addr) {
+	asm volatile (
+		"mov %0, %%esp\n"
+		"jmp *%1\n"
+		:
+		: "r"(esp), "r"(ret_addr)
+		: "memory"
+	);
+	__builtin_unreachable();
+}
 
 int syscall_handler(uint32_t int_num, uint32_t error_code) {
 	uint32_t syscall_num, arg1, arg2, arg3, arg4, arg5;
@@ -22,8 +36,27 @@ int syscall_handler(uint32_t int_num, uint32_t error_code) {
 		case SYSCALL_EXIT:
 			console_print("process exited with code ");
 			console_print_dec(arg1);
+			console_print(".");
 			console_putc('\n');
-			for (;;) asm volatile("hlt");
+
+			console_println("---------------------------------------------");
+			
+			console_println("Welcome back from userland!\n");
+			
+			console_print("Kernel ESP will be restored, value was 0x");
+			console_print_hex(kernel_ctx.esp);
+			console_print(".");
+			console_putc('\n');
+
+			console_print("Return address is 0x");
+			console_print_hex((uint32_t)kernel_ctx.ret_addr);
+			console_print(".");
+			console_putc('\n');
+
+			__asm__ __volatile__("sti");
+			console_println("Interrupts have been re-enabled.\n");
+			syscall_exit_trampoline(kernel_ctx.esp, kernel_ctx.ret_addr);
+					
 			break;
 	}
 	
