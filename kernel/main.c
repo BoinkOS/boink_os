@@ -140,12 +140,12 @@ void kmain(void) {
 	
 	
 	
-	shell_add(glfs_list_files_shell, "ls", "ls", "List all files on GLFS disk", 0);
-	shell_add(glfs_prompt, "autorun", "autorun", "GLFS auto-loader", 0);
-	shell_add(mess_shell, "mess", "mess <filename>", "Open a text file in mess", 1);
-	shell_add(squint_shell, "squint", "squint <filename>", "Open a bitmap image file in squint", 1);
-	
-	
+	shell_add(glfs_list_files_shell, "ls", "ls", "List all files on GLFS disk", 0, 0);
+	shell_add(glfs_prompt, "autorun", "autorun", "GLFS auto-loader", 0, 0);
+	shell_add(mess_shell, "mess", "mess <filename>", "Open a text file in mess", 1, 1);
+	shell_add(squint_shell, "squint", "squint <filename>", "Open a bitmap image file in squint", 1, 1);
+	shell_add(glfs_exec_bin_shell, "exec-bin", "exec-bin <filename>", "Run a binary file", 1, 1);
+	shell_add(glfs_exec_elf_shell, "exec-elf", "exec-elf <filename> <args>", "Run an elf file", 1, -1);
 	
 	shell_init();
 	

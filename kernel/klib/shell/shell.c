@@ -13,7 +13,7 @@ void shell_init() {
 	console_set_color(0xFFFFFF);
 	console_println("\n");
 	
-	shell_add(help_cmd, "help", "help", "Show this command list", 0);
+	shell_add(help_cmd, "help", "help", "Show this command list", 0, 0);
 	
 	shell_start();
 }
@@ -31,13 +31,13 @@ void shell_start() {
 		console_set_color(0xFFFFFF);
 		console_input(input, sizeof(input));
 		
-		char* argv[10];
+		char* argv[64];
 		int argc;
 		
 		// parse input into argv[]
 		argc = 0;
 		char* token = strtok(input, " ");
-		while (token && argc < 10) {
+		while (token && argc < 64) {
 			argv[argc++] = token;
 			token = strtok(NULL, " ");
 		}
@@ -50,7 +50,7 @@ void shell_start() {
 		for (int i = 0; i < command_count; i++) {
 			if (strcmp(command_list[i].name, cmd_name) == 0) {
 				found = 1;
-				if (argc - 1 != command_list[i].expected_args) {
+				if ((argc - 1) < command_list[i].min_args || (command_list[i].max_args != -1 && (argc - 1) > command_list[i].max_args)) {
 					console_set_color(0xFF0000);
 					console_print("Usage: ");
 					console_println(command_list[i].usage);
@@ -62,7 +62,7 @@ void shell_start() {
 			}
 		}
 		if (!found) {
-			console_set_color(0xFF5555);
+			console_set_color(0xFF0000);
 			console_print("Unknown command: ");
 			console_println(cmd_name);
 			console_set_color(0xFFFFFF);
@@ -72,7 +72,7 @@ void shell_start() {
 }
 
 
-void shell_add(shell_func_t func, const char* name, const char* usage, const char* desc, int expected_args) {
+void shell_add(shell_func_t func, const char* name, const char* usage, const char* desc, int min_args, int max_args) {
 	if (command_count >= MAX_COMMANDS) {
 		console_set_background_color(0xFF0000);
 		console_set_color(0xFFFFFF);
@@ -90,7 +90,8 @@ void shell_add(shell_func_t func, const char* name, const char* usage, const cha
 		.usage = usage,
 		.desc = desc,
 		.func = func,
-		.expected_args = expected_args
+		.min_args = min_args,
+		.max_args = max_args
 	};
 
 	command_list[command_count++] = cmd;

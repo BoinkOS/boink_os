@@ -82,6 +82,7 @@ disk: $(KERNEL_BIN)
 	glfs-add $(DISKNAME).glfs $(KERNEL_BIN) boink.bin
 	glfs-add $(DISKNAME).glfs x.txt lipsum.txt
 	glfs-add $(DISKNAME).glfs x.bmp image.bmp
+	glfs-add $(DISKNAME).glfs x.elf prog.elf
 	glfs-ls $(DISKNAME).glfs
 
 run: disk

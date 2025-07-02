@@ -214,6 +214,18 @@ void exec_bin(const char* filename) {
 	switch_to_user_mode((uint32_t)entry_point, user_stack);
 }
 
+void glfs_exec_bin_shell(int argc, char** argv) {
+	char* fname = argv[1];
+	int findex = glfs_find_file_index(fname);
+	
+	if (findex < 0) {
+		console_println("File not found.");
+		return;
+	}
+	
+	exec_bin(fname);
+}
+
 void glfs_prompt(int argc, char** argv) {
 	glfs_list_files(1);
 	console_print("What file would you like to load? ");
@@ -250,7 +262,7 @@ void glfs_prompt(int argc, char** argv) {
 	if (!strcmp(ext, "bin")) {
 		exec_bin(filename);
 	} else if (!strcmp(ext, "elf")) {
-		const char* args[] = { "program.elf", "hello", "world", NULL };
+		const char* args[] = { "autorun0", "hello", "world", NULL };
 		exec_elf(f-1, 3, args);
 	} else if (!strcmp(ext, "txt")) {
 		mess(f-1, filename);
@@ -327,12 +339,17 @@ void exec_elf(int findex, int argc, const char** argv) {
 	uint32_t null_ptr = 0;
 	mem_cpy((void*)(user_stack + argc * 4), &null_ptr, sizeof(uint32_t));
 
+	user_stack &= ~0xF;
+
 	user_stack -= sizeof(char**);
 	mem_cpy((void*)user_stack, &argv_array_addr, sizeof(char**));
 	
 	user_stack -= sizeof(int);
 	mem_cpy((void*)user_stack, &argc, sizeof(int));
-	user_stack &= ~0xF;
+	
+	// stack canary for debugging (0x5EE5B14D == "sees bird")
+	uint32_t canary = 0x5EE5B14D;
+	mem_cpy((void*)(user_stack - 4), &canary, 4);
 	
 	console_print("entry point: 0x");
 	console_print_hex((uint32_t)entry_point);
@@ -349,10 +366,36 @@ void exec_elf(int findex, int argc, const char** argv) {
 		console_println(arg_strings[i]);
 	}
 	
+
+	console_print("Canary: 0x");
+	console_print_hex(*(uint32_t*)(user_stack - 4));
+	console_print(" (ensure 0x5EE5B14D)");
+	console_putc('\n');
+	
 	console_println("Switching to user mode...");
 	console_println("---------------------------------------------");
+	
 	switch_to_user_mode((uint32_t)entry_point, user_stack);
 	return;
+}
+
+void glfs_exec_elf_shell(int argc, char** argv) {
+	char* fname = argv[1];
+	int findex = glfs_find_file_index(fname);
+	
+	if (findex < 0) {
+		console_println("File not found.");
+		return;
+	}
+	
+	const char* elf_argv[10];
+	int elf_argc = argc - 2;
+
+	for (int i = 0; i < elf_argc; i++) {
+		elf_argv[i] = argv[i + 2];
+	}
+
+	exec_elf(findex, elf_argc, elf_argv);
 }
 
 

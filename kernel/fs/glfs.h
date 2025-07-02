@@ -27,3 +27,5 @@ void glfs_prompt(int argc, char** argv);
 void exec_elf(int findex, int argc, const char** argv);
 void* glfs_load_file_to_address(int findex, uint32_t dest_addr);
 int glfs_find_file_index(const char* filename);
+void glfs_exec_bin_shell(int argc, char** argv);
+void glfs_exec_elf_shell(int argc, char** argv);
