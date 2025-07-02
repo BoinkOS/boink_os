@@ -24,4 +24,5 @@ typedef struct {
 } BITMAPINFOHEADER;
 #pragma pack(pop)
 
+void squint_shell(int argc, char** argv);
 void squint(int findex, const char *fname);

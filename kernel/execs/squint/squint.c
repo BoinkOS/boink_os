@@ -5,6 +5,18 @@
 #include "../../utils.h"
 #include "squint.h"
 
+void squint_shell(int argc, char** argv) {
+	char* fname = argv[1];
+	int findex = glfs_find_file_index(fname);
+	
+	if (findex < 0) {
+		console_println("File not found.");
+		return;
+	}
+	
+	squint(findex, fname);
+}
+
 void render_bmp_image(uint8_t* bmp) {
 	BITMAPFILEHEADER* fileHeader = (BITMAPFILEHEADER*)bmp;
 	BITMAPINFOHEADER* infoHeader = (BITMAPINFOHEADER*)(bmp + sizeof(BITMAPFILEHEADER));
