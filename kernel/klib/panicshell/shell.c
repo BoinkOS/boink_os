@@ -62,32 +62,6 @@ void cmd_help() {
 	pshell_println("  whereami               - dump eip and cs");
 }
 
-static uint32_t parse_hex(const char* str) {
-	uint32_t result = 0;
-
-	// skip "0x" or "0X" if present
-	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
-		str += 2;
-	}
-
-	while (*str) {
-		result <<= 4;
-
-		if (*str >= '0' && *str <= '9')
-			result |= (*str - '0');
-		else if (*str >= 'A' && *str <= 'F')
-			result |= (*str - 'A' + 10);
-		else if (*str >= 'a' && *str <= 'f')
-			result |= (*str - 'a' + 10);
-		else
-			break; // invalid char
-
-		str++;
-	}
-
-	return result;
-}
-
 void cmd_memdump(const char* arg1, const char* arg2) {
 	uint32_t start = parse_hex(arg1);
 	uint32_t end = parse_hex(arg2);

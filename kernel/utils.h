@@ -16,3 +16,4 @@ int strncmp(const char *s1, const char *s2, size_t n);
 char* strtok(char* str, const char* delim);
 char* strchr(const char* str, int c);
 char* strcat(char* dest, const char* src);
+uint32_t parse_hex(const char* str);

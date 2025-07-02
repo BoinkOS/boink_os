@@ -238,3 +238,29 @@ char* strcat(char* dest, const char* src) {
 	*dest = '\0';
 	return original;
 }
+
+uint32_t parse_hex(const char* str) {
+	uint32_t result = 0;
+
+	// skip "0x" or "0X" if present
+	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+		str += 2;
+	}
+
+	while (*str) {
+		result <<= 4;
+
+		if (*str >= '0' && *str <= '9')
+			result |= (*str - '0');
+		else if (*str >= 'A' && *str <= 'F')
+			result |= (*str - 'A' + 10);
+		else if (*str >= 'a' && *str <= 'f')
+			result |= (*str - 'a' + 10);
+		else
+			break; // invalid char
+
+		str++;
+	}
+
+	return result;
+}

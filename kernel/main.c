@@ -10,6 +10,7 @@
 #include "drivers/video/fb.h"
 #include "drivers/video/text.h"
 #include "klib/console/console.h"
+#include "klib/shell/shell.h"
 #include "mem/mem.h"
 #include "mem/paging.h"
 #include "mem/frame_alloc.h"
@@ -56,11 +57,12 @@ void kmain(void) {
 	
 	console_println("initialising keyboard...");
 	keyboard_init();
+
+	console_println("initialising kernel scratchpad...");
+	kscratch_init();
 	
 	console_println("maskable interrupts will be enabled after next instruction.");
 	__asm__ __volatile__("sti");
-
-	kscratch_init();
 	
 	console_set_color(0xFFFFFF);
 	console_set_background_color(0x0000FF);
@@ -73,29 +75,6 @@ void kmain(void) {
 	console_set_background_color(0x000000);
 	console_set_color(0xFFFFFF);
 	console_println("");
-	console_print("OK to proceed? (y/n) ");
-	
-	char conf = read_key();
-	console_set_color(0x9019ff);
-	console_putc(conf);
-	console_set_color(0xFFFFFF);
-	console_putc('\n');
-	if (conf != 'Y' && conf != 'y') {
-		console_set_background_color(0xFF0000);
-		console_set_color(0xFFFFFF);
-		console_println("System suspended. Restart system.");
-		while (1);
-	}
-	
-	disable_frame_debug();
-	
-	console_set_background_color(0x9019ff);
-	console_print("\n\n~~~ Welcome to BoinkOS! ~~~             moof!");
-	console_set_color(0xc98fff);
-	console_print("\n~ where there is a shell, there is a way... ~");
-	console_set_background_color(0x000000);
-	console_set_color(0xFFFFFF);
-	console_println("\n");
 	
 	console_println("initializing disk...");
 	irq_set_handler(14, ata_irq_handler);
@@ -137,18 +116,10 @@ void kmain(void) {
 	
 	glfs_read_directory();
 	
-	
-
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	glfs_prompt();
-	
-	while (1) {};
-	
-	
-	
-	/*console_print("Enter echo shell? (y/n) ");
-	conf = read_key();
+	console_print("Enter echo shell? (y/n) ");
+	char conf = read_key();
 	console_set_color(0x9019ff);
 	console_putc(conf);
 	console_set_color(0xFFFFFF);
@@ -160,19 +131,7 @@ void kmain(void) {
 		while (1);
 	}
 	
-	console_set_color(0x9019ff);
-	console_println("\n\nBoinkOS Echo Shell");
-	console_set_color(0xFFFFFF);
-	console_println("\n");
-	char input[128];
-	while (1) {
-		console_set_color(0xFFFF00);
-		console_print("boink$ ");
-		console_set_color(0xFFFFFF);
-		console_input(input, sizeof(input));
-		console_print("ECHO: ");
-		console_print(input);
-		console_putc('\n');
-		console_putc('\n');
-	}*/
+	shell_init();
+	
+	while (1) {};
 }
