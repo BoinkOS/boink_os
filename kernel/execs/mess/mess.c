@@ -20,7 +20,7 @@ void mess(int findex, const char *fname) {
 	scroll_offset = 0;
 	
 	console_println("mess has started.");
-	txt = (char*)glfs_load_txt_file(findex, TXT_BASE);
+	txt = (char*)glfs_load_file_to_address(findex, TXT_BASE);
 
 
 	console_set_background_color(0xFFFFFF);

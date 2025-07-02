@@ -62,7 +62,7 @@ void draw_status_bar(const char* fname) {
 void squint(int findex, const char *fname) {
 	console_println("S.Q.U.I.N.T. (Small Quick Unstable Image-Navigating Thing)");
 
-	uint8_t* bmp = (uint8_t*)glfs_load_bmp_file(findex, IMG_BASE);
+	uint8_t* bmp = (uint8_t*)glfs_load_file_to_address(findex, IMG_BASE);
 	if (!bmp) {
 		console_println("failed to load image file");
 		return;

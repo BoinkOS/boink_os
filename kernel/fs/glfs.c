@@ -352,33 +352,7 @@ void exec_elf(int findex, int argc, const char** argv) {
 }
 
 
-void* glfs_load_txt_file(int findex, uint32_t dest_addr) {
-	glfs_init_buffers();
-	glfs_map_temp_sector_buffer();
-	glfs_read_directory();
-
-	glfs_file_entry* file = &glfs_files[findex];
-
-	console_print("Loading .txt file: ");
-	console_println(file->filename);
-
-	uint32_t pages_needed = (file->size + 0xFFF) / 0x1000;
-
-	for (uint32_t j = 0; j < pages_needed; j++) {
-		uint32_t phys = alloc_frame();
-		map_page(dest_addr + j * 0x1000, phys, PAGE_PRESENT | PAGE_RW | PAGE_KERNEL);
-		flush_tlb_single(dest_addr + j * 0x1000);
-	}
-
-	uint8_t* buf = (uint8_t*)dest_addr;
-	glfs_load_file(file, buf);
-
-	console_println("Text file loaded to memory.");
-	return buf;
-}
-
-
-void* glfs_load_bmp_file(int findex, uint32_t dest_addr) {
+void* glfs_load_file_to_address(int findex, uint32_t dest_addr) {
 	glfs_init_buffers();
 	glfs_map_temp_sector_buffer();
 	glfs_read_directory();
