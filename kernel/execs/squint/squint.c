@@ -8,12 +8,12 @@
 void squint_shell(int argc, char** argv) {
 	char* fname = argv[1];
 	int findex = glfs_find_file_index(fname);
-	
+
 	if (findex < 0) {
 		console_println("File not found.");
 		return;
 	}
-	
+
 	squint(findex, fname);
 }
 
@@ -26,8 +26,10 @@ void render_bmp_image(uint8_t* bmp) {
 		return;
 	}
 
+	int rawHeight = infoHeader->biHeight;
+	bool topDown  = rawHeight < 0;
+	int height    = rawHeight>0 ? rawHeight : -rawHeight;
 	int width = infoHeader->biWidth;
-	int height = infoHeader->biHeight;
 	int bpp = infoHeader->biBitCount;
 
 	if (bpp != 24 && bpp != 32) {
@@ -42,7 +44,7 @@ void render_bmp_image(uint8_t* bmp) {
 	int rowSize = ((width * bytesPerPixel + 3) & ~3); // pad to nearest 4 bytes
 
 	for (int y = 0; y < height; y++) {
-		int row = height - 1 - y; // bmp is bottom-to-top
+		int row = topDown ? y : height-1-y;
 
 		for (int x = 0; x < width; x++) {
 			uint8_t* px = pixelData + row * rowSize + x * bytesPerPixel;
@@ -50,7 +52,7 @@ void render_bmp_image(uint8_t* bmp) {
 			uint8_t blue = px[0];
 			uint8_t green = px[1];
 			uint8_t red = px[2];
-			// uint8_t alpha = (bpp == 32) ? px[3] : 0xFF;
+			//uint8_t alpha = (bpp == 32) ? px[3] : 0xFF;
 
 			uint32_t color = (red << 16) | (green << 8) | blue;
 
@@ -128,7 +130,7 @@ void squint(int findex, const char *fname) {
 	console_set_color(0x9019ff);
 	console_println("\"It's very simple -- you read the protocol and write the code.\" - Bill Joy");
 	console_set_color(0xffffff);
-	
+
 	console_print("S.Q.U.I.N.T: ");
 	console_print(fname);
 	console_println(" / closed.");
