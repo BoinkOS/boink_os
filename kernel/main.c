@@ -125,7 +125,7 @@ void kmain(void) {
 	
 	tss_init(0x9FBFF); // setup TSS for user mode
 	
-	console_print("Enter echo shell? (y/n) ");
+	console_print("Enter shell? (y/n) ");
 	char conf = read_key();
 	console_set_color(0x9019ff);
 	console_putc(conf);
