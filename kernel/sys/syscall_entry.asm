@@ -9,6 +9,7 @@ syscall_entry:
 	; call C handler
 	extern syscall_handler
 	call syscall_handler
-
+	mov [esp + 28], eax
+	
 	popa
 	iret
